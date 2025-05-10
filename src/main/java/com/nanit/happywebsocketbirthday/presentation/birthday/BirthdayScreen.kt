@@ -40,16 +40,13 @@ import kotlin.math.sqrt
 
 @Composable
 fun BirthdayScreen(uiState: BirthdayScreenState) {
+    val currentTheme = AppTheme.fromThemeName(uiState.babyInfo.theme)
 
-// Get the AppTheme based on the babyInfo theme name string
-    val currentTheme =
-        AppTheme.fromThemeName(uiState.babyInfo.theme) // Use safe call ?. in case babyInfo is null
-
-    // Access the resources directly from the currentTheme object
     val backgroundDrawableId = currentTheme.backgroundDrawableId
     val faceDrawableId = currentTheme.faceIconDrawableId
     val cameraIconDrawableId = currentTheme.cameraIconDrawableId
     val backgroundColor = currentTheme.backgroundColor
+    val babyNameLabel = "Today ${uiState.babyInfo.name} is"
 
     val bentonSansFamily = FontFamily(
         Font(R.font.benton_sans_regular, FontWeight.Normal),
@@ -75,7 +72,6 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                     .padding(start = 50.dp, end = 50.dp)
                     .weight(1f)
             ) {
-                val babyNameLabel = "Today ${uiState.babyInfo.name} is"
                 Text(
                     babyNameLabel.uppercase(),
                     color = DarkBlueTextColor,
@@ -83,8 +79,8 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                         .padding(top = 20.dp),
                     textAlign = TextAlign.Center,
                     fontSize = 21.sp,
-                    fontFamily = bentonSansFamily, // Apply the custom font family
-                    fontWeight = FontWeight.Bold // Specify the weight from the family
+                    fontFamily = bentonSansFamily,
+                    fontWeight = FontWeight.Bold
                 )
 
                 Row(
@@ -94,21 +90,21 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
 
                     Image(
                         painter = painterResource(id = R.drawable.left_swirls),
-                        contentDescription = "Nanit logo",
+                        contentDescription = "Decoration",
                         modifier = Modifier
                             .width(50.dp)
                             .align(Alignment.CenterVertically)
                     )
                     Image(
                         painter = painterResource(id = uiState.ageDisplayInfo.numberIconDrawableId),
-                        contentDescription = "Nanit logo",
+                        contentDescription = "Number Icon",
                         modifier = Modifier
                             .height(88.dp)
                             .padding(start = 22.dp, end = 22.dp)
                     )
                     Image(
                         painter = painterResource(id = R.drawable.right_swirls),
-                        contentDescription = "Nanit logo",
+                        contentDescription = "Decoration",
                         modifier = Modifier
                             .width(50.dp)
                             .align(Alignment.CenterVertically)
@@ -118,12 +114,12 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                     uiState.ageDisplayInfo.ageLabelText,
                     fontSize = 18.sp,
                     color = DarkBlueTextColor,
-                    fontFamily = bentonSansFamily, // Apply the custom font family
-                    fontWeight = FontWeight.Bold // Specify the weight from the family
+                    fontFamily = bentonSansFamily,
+                    fontWeight = FontWeight.Bold
                 )
             }
             Box(
-                contentAlignment = Alignment.Center, // Center the content within the Box
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .padding(
                         top = 15.dp,
@@ -131,7 +127,7 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                         end = 50.dp,
                         bottom = 135.dp
                     )
-                    .align(Alignment.CenterHorizontally) // Size of the main container
+                    .align(Alignment.CenterHorizontally)
             ) {
                 val circleSize = 200
                 val cameraIconSize = 36
@@ -155,7 +151,7 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
         // Display the background image
         Image(
             painter = painterResource(id = backgroundDrawableId),
-            contentDescription = "Background image for ${uiState.babyInfo.theme} theme", // More specific content description
+            contentDescription = "Background image",
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter),
@@ -185,6 +181,7 @@ fun BirthdayScreen(
     BirthdayScreen(uiState = uiState) // Call the state-driven composable
 }
 
+
 @Preview(
     showBackground = true,
 //    widthDp = 361,
@@ -193,11 +190,10 @@ fun BirthdayScreen(
 
 @Composable
 fun BirthdayScreenPreview() {
-    // Provide a sample UI state for the preview
     val sampleBabyInfo = BabyInfo(
         name = "Christiano Ronaldo",
         dob = 1640995200000, // Example DOB (Jan 1, 2022)
-        theme = "pelican" // Set a sample theme
+        theme = "pelican"
     )
 
     val sampleUiState = BirthdayScreenState(

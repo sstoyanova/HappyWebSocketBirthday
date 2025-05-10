@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BirthdayScreenViewModel @Inject constructor(
-    private val babyRepository: BabyRepository, // Inject BabyRepository
+    private val babyRepository: BabyRepository,
     private val getAgeDisplayInfoUseCase: GetAgeDisplayInfoUseCase
 ) : ViewModel() {
     private val _uiState =
@@ -23,7 +23,7 @@ class BirthdayScreenViewModel @Inject constructor(
     val uiState: StateFlow<BirthdayScreenState> = _uiState.asStateFlow()
 
     init {
-        fetchBabyInfo() // Call the private function
+        fetchBabyInfo()
     }
 
     private fun fetchBabyInfo() {
@@ -35,7 +35,6 @@ class BirthdayScreenViewModel @Inject constructor(
             }
 
             val loadedBabyInfo = babyRepository.getBabyInfoFromPreferences()
-
 
             _uiState.update {
                 if (loadedBabyInfo != null) {
@@ -55,5 +54,4 @@ class BirthdayScreenViewModel @Inject constructor(
             }
         }
     }
-
 }
