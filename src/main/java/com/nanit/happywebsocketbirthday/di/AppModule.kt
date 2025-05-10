@@ -2,7 +2,9 @@ package com.nanit.happywebsocketbirthday.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.nanit.happywebsocketbirthday.data.BabyRepositoryImpl
 import com.nanit.happywebsocketbirthday.data.network.WebSocketClient
+import com.nanit.happywebsocketbirthday.domain.repository.BabyRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -48,5 +50,18 @@ object AppModule {
     @Singleton
     fun provideWebSocketClient(client: HttpClient): WebSocketClient {
         return WebSocketClient(client)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideBabyRepository(
+        webSocketClient: WebSocketClient,
+        sharedPreferences: SharedPreferences
+    ): BabyRepository { // Provide the domain interface
+        return BabyRepositoryImpl(
+            webSocketClient,
+            sharedPreferences
+        ) // Return the data layer implementation
     }
 }

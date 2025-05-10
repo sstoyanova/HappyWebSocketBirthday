@@ -1,7 +1,7 @@
 package com.nanit.happywebsocketbirthday.data.network
 
 import android.util.Log
-import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
+import com.nanit.happywebsocketbirthday.data.model.ApiBabyInfo
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.http.HttpMethod
@@ -18,7 +18,7 @@ import javax.inject.Singleton
 class WebSocketClient @Inject constructor(
     private val client: HttpClient
 ) {
-    fun connectAndReceiveBabyInfo(ipAddress: String, message: String): Flow<BabyInfo?> = flow {
+    fun connectAndReceiveBabyInfo(ipAddress: String, message: String): Flow<ApiBabyInfo?> = flow {
         val (ip, port) = ipAddress.split(":")
         val url = "ws://$ip:$port/nanit"
 
@@ -38,14 +38,14 @@ class WebSocketClient @Inject constructor(
                         is Frame.Text -> {
                             val receivedText = frame.readText()
                             Log.d("WebSocketClient", "Received message: $receivedText")
-                            val babyInfo = try {
-                                BabyInfo.fromJson(receivedText)
+                            val apiBabyInfo = try {
+                                ApiBabyInfo.fromJson(receivedText)
                             } catch (e: Exception) {
                                 Log.e("WebSocketClient", "Error decoding JSON: ${e.message}")
                                 null
                             }
-                            emit(babyInfo)
-                            if (babyInfo != null) {
+                            emit(apiBabyInfo)
+                            if (apiBabyInfo != null) {
                                 break
                             }
                         }

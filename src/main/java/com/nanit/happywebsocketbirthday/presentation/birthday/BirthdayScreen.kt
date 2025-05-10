@@ -60,12 +60,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.nanit.happywebsocketbirthday.R
-import com.nanit.happywebsocketbirthday.domain.model.AgeDisplayInfo
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
+import com.nanit.happywebsocketbirthday.presentation.model.AgeDisplayInfo
+import com.nanit.happywebsocketbirthday.presentation.utils.FileProviderUtils.createTempImageFile
+import com.nanit.happywebsocketbirthday.presentation.utils.FileProviderUtils.getUriForFile
 import com.nanit.happywebsocketbirthday.ui.theme.AppTheme
 import com.nanit.happywebsocketbirthday.ui.theme.DarkBlueTextColor
-import com.nanit.happywebsocketbirthday.utils.FileProviderUtils.createTempImageFile
-import com.nanit.happywebsocketbirthday.utils.FileProviderUtils.getUriForFile
 import kotlin.math.sqrt
 
 @Composable
@@ -485,7 +485,7 @@ fun PictureSourceDialog(
 fun BirthdayScreenPreview() {
     val sampleBabyInfo = BabyInfo(
         name = "Christiano Ronaldo",
-        dob = 1640995200000, // Example DOB (Jan 1, 2022)
+        dateOfBirth = 1640995200000, // Example DOB (Jan 1, 2022)
         theme = "pelican"
     )
 

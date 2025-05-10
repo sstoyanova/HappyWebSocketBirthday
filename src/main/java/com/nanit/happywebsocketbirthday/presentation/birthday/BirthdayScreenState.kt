@@ -1,8 +1,8 @@
 package com.nanit.happywebsocketbirthday.presentation.birthday
 
 import android.net.Uri
-import com.nanit.happywebsocketbirthday.domain.model.AgeDisplayInfo
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
+import com.nanit.happywebsocketbirthday.presentation.model.AgeDisplayInfo
 
 // A data class to hold the UI state for the BabyInfoScreen
 data class BirthdayScreenState(

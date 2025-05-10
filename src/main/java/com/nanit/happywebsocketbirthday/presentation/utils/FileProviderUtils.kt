@@ -1,4 +1,4 @@
-package com.nanit.happywebsocketbirthday.utils // Replace with your actual package name
+package com.nanit.happywebsocketbirthday.presentation.utils // Replace with your actual package name
 
 import android.content.Context
 import android.net.Uri
@@ -9,7 +9,6 @@ import java.io.File
 import java.io.IOException
 
 object FileProviderUtils {
-
     // Function to create a temporary file for the camera output
     fun createTempImageFile(context: Context): File? {
         // Create an image file name

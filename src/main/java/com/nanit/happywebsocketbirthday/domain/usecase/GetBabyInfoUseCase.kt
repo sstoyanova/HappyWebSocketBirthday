@@ -1,7 +1,7 @@
 package com.nanit.happywebsocketbirthday.domain.usecase
 
-import com.nanit.happywebsocketbirthday.data.BabyRepository
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
+import com.nanit.happywebsocketbirthday.domain.repository.BabyRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
