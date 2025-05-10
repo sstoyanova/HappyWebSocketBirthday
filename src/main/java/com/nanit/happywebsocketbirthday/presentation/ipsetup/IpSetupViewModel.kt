@@ -13,21 +13,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class IpSetupState(
-    val ipPort: String = "192.168.100.12:8080",
-    val validationResult: ValidationResult = ValidationResult(true),
-    val isLoading: Boolean = false,
-    val babyInfoReceived: Boolean = false, // Flag to indicate if baby info was received
-    val errorMessage: String? = null
-)
 
 @HiltViewModel
 class IpSetupViewModel @Inject constructor(
     private val getBabyInfoUseCase: GetBabyInfoUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(IpSetupState())
-    val state: StateFlow<IpSetupState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(IpSetupScreenState())
+    val state: StateFlow<IpSetupScreenState> = _state.asStateFlow()
 
     fun connectToWebSocket(ipAddress: String) {
         viewModelScope.launch {
@@ -40,7 +33,8 @@ class IpSetupViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 babyInfoReceived = true,
-                                errorMessage = null
+                                errorMessage = null,
+                                babyInfo = babyInfo // Store received babyInfo in the state
                             )
                         }
                     } else {
@@ -49,11 +43,22 @@ class IpSetupViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 babyInfoReceived = false,
-                                errorMessage = "Failed to get baby info."
+                                errorMessage = "Failed to get baby info.",
+                                babyInfo = null
                             )
                         }
                     }
                 }
+        }
+    }
+
+    // Resets the navigation trigger state
+    fun resetNavigationTriggerState() {
+        _state.update { currentState ->
+            currentState.copy(
+                babyInfoReceived = false,
+                babyInfo = null // Reset babyInfo
+            )
         }
     }
 

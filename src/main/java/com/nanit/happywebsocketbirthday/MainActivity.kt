@@ -11,7 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nanit.happywebsocketbirthday.presentation.birthday.BirthdayScreen
-import com.nanit.happywebsocketbirthday.presentation.ipsetup.IpAddressSetupScreen
+import com.nanit.happywebsocketbirthday.presentation.ipsetup.IpSetupScreen
 import com.nanit.happywebsocketbirthday.ui.theme.HappyWebSocketBirthdayTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                         startDestination = AppDestinations.IP_ADDRESS_ROUTE
                     ) {
                         composable(AppDestinations.IP_ADDRESS_ROUTE) {
-                            IpAddressSetupScreen(
+                            IpSetupScreen(
                                 onNavigateToBabyInfo = {
                                     navController.navigate(AppDestinations.BABY_INFO_ROUTE)
                                 }
