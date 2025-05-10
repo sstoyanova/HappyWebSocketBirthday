@@ -191,8 +191,8 @@ fun BirthdayScreenWithState(uiState: BirthdayScreenState) {
                     )
                     .align(Alignment.CenterHorizontally) // Size of the main container
             ) {
-                val circleSize = 200;
-                val cameraIconSize = 36;
+                val circleSize = 200
+                val cameraIconSize = 36
                 Image(
                     painter = painterResource(id = faceDrawableId),
                     contentDescription = "Nanit logo",
