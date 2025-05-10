@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,52 +26,30 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nanit.happywebsocketbirthday.R
+import com.nanit.happywebsocketbirthday.domain.model.AgeDisplayInfo
+import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
+import com.nanit.happywebsocketbirthday.ui.theme.AppTheme
 import com.nanit.happywebsocketbirthday.ui.theme.DarkBlueTextColor
-import com.nanit.happywebsocketbirthday.ui.theme.ElephantGray
-import com.nanit.happywebsocketbirthday.ui.theme.FoxOrange
-import com.nanit.happywebsocketbirthday.ui.theme.PelicanBlue
 import kotlin.math.sqrt
 
-// Modify your BirthdayScreen to accept the UI state for easier previewing
 @Composable
 fun BirthdayScreen(uiState: BirthdayScreenState) {
 
-// Determine the background drawable based on the theme
-    val backgroundDrawableId = when (uiState.babyInfo.theme) {
-        "pelican" -> R.drawable.bg_android_pelican // Use your PNG drawable resource names
-        "fox" -> R.drawable.android_bg_fox
-        "elephant" -> R.drawable.bg_android_elephant
-        else -> R.drawable.bg_android_pelican // Default background if theme is unknown or null
-    }
+// Get the AppTheme based on the babyInfo theme name string
+    val currentTheme =
+        AppTheme.fromThemeName(uiState.babyInfo.theme) // Use safe call ?. in case babyInfo is null
 
-// Determine the face icon based on the theme
-    val faceDrawableId = when (uiState.babyInfo.theme) {
-        "pelican" -> R.drawable.blue_face // Use your PNG drawable resource names
-        "fox" -> R.drawable.yellow_face
-        "elephant" -> R.drawable.green_face
-        else -> R.drawable.blue_face // Default face if theme is unknown or null
-    }
-
-    // Determine the face icon based on the theme
-    val cameraIconDrawableId = when (uiState.babyInfo.theme) {
-        "pelican" -> R.drawable.icon_camera_blue // Use your PNG drawable resource names
-        "fox" -> R.drawable.icon_camera_yellow
-        "elephant" -> R.drawable.icon_camera_teal
-        else -> R.drawable.icon_camera_blue // Default icon if theme is unknown or null
-    }
-
-// Determine the background color based on the theme
-    val backgroundColor = when (uiState.babyInfo.theme) {
-        "pelican" -> PelicanBlue // Use your defined theme colors
-        "fox" -> FoxOrange
-        "elephant" -> ElephantGray
-        else -> PelicanBlue // Default background color if theme is unknown or null
-    }
+    // Access the resources directly from the currentTheme object
+    val backgroundDrawableId = currentTheme.backgroundDrawableId
+    val faceDrawableId = currentTheme.faceIconDrawableId
+    val cameraIconDrawableId = currentTheme.cameraIconDrawableId
+    val backgroundColor = currentTheme.backgroundColor
 
     val bentonSansFamily = FontFamily(
         Font(R.font.benton_sans_regular, FontWeight.Normal),
@@ -137,7 +117,9 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                 Text(
                     uiState.ageDisplayInfo.ageLabelText,
                     fontSize = 18.sp,
-                    color = DarkBlueTextColor
+                    color = DarkBlueTextColor,
+                    fontFamily = bentonSansFamily, // Apply the custom font family
+                    fontWeight = FontWeight.Bold // Specify the weight from the family
                 )
             }
             Box(
@@ -155,7 +137,7 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                 val cameraIconSize = 36
                 Image(
                     painter = painterResource(id = faceDrawableId),
-                    contentDescription = "Nanit logo",
+                    contentDescription = "Baby Image",
                     modifier = Modifier
                         .size(circleSize.dp)
                 )
@@ -201,6 +183,35 @@ fun BirthdayScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     BirthdayScreen(uiState = uiState) // Call the state-driven composable
+}
+
+@Preview(
+    showBackground = true,
+//    widthDp = 361,
+//    heightDp = 592
+) // showBackground is helpful to see the composable against a background
+
+@Composable
+fun BirthdayScreenPreview() {
+    // Provide a sample UI state for the preview
+    val sampleBabyInfo = BabyInfo(
+        name = "Christiano Ronaldo",
+        dob = 1640995200000, // Example DOB (Jan 1, 2022)
+        theme = "pelican" // Set a sample theme
+    )
+
+    val sampleUiState = BirthdayScreenState(
+        babyInfo = sampleBabyInfo,
+        isLoading = false,
+        errorMessage = null,
+        ageDisplayInfo = AgeDisplayInfo(R.drawable.icon_10, "MONTHS OLD!")
+    )
+
+    MaterialTheme {
+        Surface {
+            BirthdayScreen(uiState = sampleUiState)
+        }
+    }
 }
 
 
