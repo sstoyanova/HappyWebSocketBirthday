@@ -2,6 +2,7 @@ package com.nanit.happywebsocketbirthday.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.nanit.happywebsocketbirthday.data.network.WebSocketClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,5 +41,12 @@ object AppModule {
                 )
             }
         }
+    }
+
+    // Provide the WebSocketClient
+    @Provides
+    @Singleton
+    fun provideWebSocketClient(client: HttpClient): WebSocketClient {
+        return WebSocketClient(client)
     }
 }
