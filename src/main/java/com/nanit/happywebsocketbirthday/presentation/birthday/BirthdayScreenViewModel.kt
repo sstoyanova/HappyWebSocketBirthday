@@ -32,6 +32,25 @@ class BirthdayScreenViewModel @Inject constructor(
     private val _showPictureSourceDialog = MutableSharedFlow<Unit>()
     val showPictureSourceDialog = _showPictureSourceDialog.asSharedFlow()
 
+    private val numberIconMap: Map<Int, Int> by lazy {
+        mapOf(
+            0 to R.drawable.icon_0,
+            1 to R.drawable.icon_1,
+            2 to R.drawable.icon_2,
+            3 to R.drawable.icon_3,
+            4 to R.drawable.icon_4,
+            5 to R.drawable.icon_5,
+            6 to R.drawable.icon_6,
+            7 to R.drawable.icon_7,
+            8 to R.drawable.icon_8,
+            9 to R.drawable.icon_9,
+            10 to R.drawable.icon_10,
+            11 to R.drawable.icon_11,
+            12 to R.drawable.icon_12
+        )
+    }
+
+
     init {
         loadInitialBabyInfoFromPreferences()
 
@@ -102,23 +121,6 @@ class BirthdayScreenViewModel @Inject constructor(
             currentState.copy(babyPictureUri = uri)
         }
     }
-
-
-    private val numberIconMap = mapOf(
-        0 to R.drawable.icon_0,
-        1 to R.drawable.icon_1,
-        2 to R.drawable.icon_2,
-        3 to R.drawable.icon_3,
-        4 to R.drawable.icon_4,
-        5 to R.drawable.icon_5,
-        6 to R.drawable.icon_6,
-        7 to R.drawable.icon_7,
-        8 to R.drawable.icon_8,
-        9 to R.drawable.icon_9,
-        10 to R.drawable.icon_10,
-        11 to R.drawable.icon_11,
-        12 to R.drawable.icon_12
-    )
 
     //returns @DrawableRes icon corresponding to the passed number
     private fun getIconDrawableId(number: Int): Int {
