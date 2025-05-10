@@ -1,0 +1,105 @@
+package com.nanit.happywebsocketbirthday.presentation.ipsetup
+
+import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nanit.happywebsocketbirthday.isValidIpPortFormat
+
+@Composable
+fun IpAddressSetupScreen(
+    onNavigateToBabyInfo: () -> Unit,
+    viewModel: IpSetupViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // Use LaunchedEffect to trigger navigation when babyInfoReceived is true
+    LaunchedEffect(key1 = uiState.babyInfoReceived) {
+        if (uiState.babyInfoReceived) {
+            onNavigateToBabyInfo() // Trigger navigation
+        }
+    }
+    Column(
+        modifier = Modifier
+            .statusBarsPadding()
+            .padding(horizontal = 40.dp)
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+        OutlinedTextField(
+            //A text box that displays the string value you pass here.
+            value = uiState.ipPort,
+            //The lambda callback that's triggered when the user enters text in the text box.
+            onValueChange = { newValue ->
+                viewModel.updateIpPort(newValue) // Update the ipPort on the ViewModel
+                viewModel.updateValidationResult(isValidIpPortFormat(newValue)) // Update the validationResult on the ViewModel
+            }, // Updates the state when user types
+            label = { Text("IP : Port") },
+            placeholder = { Text("e.g., 192.168.1.1:8080") },
+            isError = !uiState.validationResult.isValid, // Use validationResult from state
+            supportingText = {
+                if (!uiState.validationResult.isValid) { // Use validationResult from state
+                    Text(text = uiState.validationResult.errorMessage)
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            modifier = Modifier.padding(top = 64.dp, bottom = 32.dp)
+        )
+
+        if (uiState.isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(64.dp),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                strokeWidth = 4.dp
+            )
+        } else {
+            //Spacer to maintain the layout.
+            Spacer(modifier = Modifier.height(64.dp))
+        }
+        Button(
+            onClick = {
+                if (uiState.validationResult.isValid && uiState.ipPort.isNotEmpty()) {
+                    viewModel.connectToWebSocket(uiState.ipPort)
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Please enter a valid IP:Port first",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
+            modifier = Modifier.padding(top = 32.dp, bottom = 64.dp),
+            enabled = uiState.validationResult.isValid && uiState.ipPort.isNotEmpty() && !uiState.isLoading
+        ) {
+            Text("Connect")
+        }
+    }
+}

@@ -1,3 +1,4 @@
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -71,5 +72,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.navigation.compose)
+    // Hilt for Compose Navigation
+    implementation(libs.androidx.hilt.navigation.compose)
 
 }

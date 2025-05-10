@@ -1,6 +1,8 @@
 package com.nanit.happywebsocketbirthday.data
 
+import android.content.SharedPreferences
 import android.util.Log
+import androidx.core.content.edit
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocket
@@ -15,7 +17,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class BabyRepository @Inject constructor(private val client: HttpClient) {
+class BabyRepository @Inject constructor(
+    private val client: HttpClient,
+    private val sharedPreferences: SharedPreferences
+) {
+    private val BABY_INFO_KEY = "baby_info" // Key for Shared Preferences
 
     fun connectToWebSocket(ipAddress: String, message: String): Flow<BabyInfo?> = flow {
         val (ip, port) = ipAddress.split(":")
@@ -66,6 +72,39 @@ class BabyRepository @Inject constructor(private val client: HttpClient) {
             emit(null)
         } finally {
             Log.d("WebSocket", "WebSocket connection closed")
+        }
+    }
+
+
+    // Function to save BabyInfo to Shared Preferences
+    fun saveBabyInfo(babyInfo: BabyInfo) {
+        try {
+            val babyInfoJsonString = babyInfo.toJson() // Use the toJson() instance function
+            sharedPreferences.edit {
+                putString(BABY_INFO_KEY, babyInfoJsonString)
+                apply()
+            }
+            Log.d("BabyRepository", "BabyInfo saved to Shared Preferences")
+        } catch (e: Exception) {
+            Log.e("BabyRepository", "Error saving BabyInfo to Shared Preferences: ${e.message}")
+        }
+    }
+
+    // Function to read BabyInfo from Shared Preferences
+    fun getBabyInfoFromPreferences(): BabyInfo? {
+        val babyInfoJsonString = sharedPreferences.getString(BABY_INFO_KEY, null)
+        return if (babyInfoJsonString != null) {
+            try {
+                BabyInfo.fromJson(babyInfoJsonString)
+            } catch (e: Exception) {
+                Log.e(
+                    "BabyRepository",
+                    "Error reading BabyInfo from Shared Preferences: ${e.message}"
+                )
+                null
+            }
+        } else {
+            null
         }
     }
 }
