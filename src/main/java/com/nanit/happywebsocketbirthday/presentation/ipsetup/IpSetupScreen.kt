@@ -21,11 +21,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nanit.happywebsocketbirthday.R
 import com.nanit.happywebsocketbirthday.isValidIpPortFormat
 
 @Composable
@@ -58,8 +60,8 @@ fun IpAddressSetupScreen(
                 viewModel.updateIpPort(newValue) // Update the ipPort on the ViewModel
                 viewModel.updateValidationResult(isValidIpPortFormat(newValue)) // Update the validationResult on the ViewModel
             }, // Updates the state when user types
-            label = { Text("IP : Port") },
-            placeholder = { Text("e.g., 192.168.1.1:8080") },
+            label = { Text(stringResource(R.string.ip_port_label)) },
+            placeholder = { Text(stringResource(R.string.ip_port_placeholder)) },
             isError = !uiState.validationResult.isValid, // Use validationResult from state
             supportingText = {
                 if (!uiState.validationResult.isValid) { // Use validationResult from state
@@ -91,7 +93,7 @@ fun IpAddressSetupScreen(
                 } else {
                     Toast.makeText(
                         context,
-                        "Please enter a valid IP:Port first",
+                        context.getString(R.string.please_enter_a_valid_ip_port_first),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -99,7 +101,7 @@ fun IpAddressSetupScreen(
             modifier = Modifier.padding(top = 32.dp, bottom = 64.dp),
             enabled = uiState.validationResult.isValid && uiState.ipPort.isNotEmpty() && !uiState.isLoading
         ) {
-            Text("Connect")
+            Text(stringResource(R.string.connect))
         }
     }
 }

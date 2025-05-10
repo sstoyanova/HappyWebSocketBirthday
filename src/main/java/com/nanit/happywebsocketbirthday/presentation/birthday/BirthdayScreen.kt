@@ -22,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -46,7 +48,12 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
     val faceDrawableId = currentTheme.faceIconDrawableId
     val cameraIconDrawableId = currentTheme.cameraIconDrawableId
     val backgroundColor = currentTheme.backgroundColor
-    val babyNameLabel = "Today ${uiState.babyInfo.name} is"
+
+    val babyNameLabel = stringResource(R.string.today_baby_name_is_label, uiState.babyInfo.name)
+    val ageLabelText = pluralStringResource(
+        id = uiState.ageDisplayInfo.ageLabelPluralResId, // Use the plural resource ID
+        uiState.ageDisplayInfo.age // Directly use the age from AgeDisplayInfo as the quantity
+    )
 
     val bentonSansFamily = FontFamily(
         Font(R.font.benton_sans_regular, FontWeight.Normal),
@@ -97,7 +104,7 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                     )
                     Image(
                         painter = painterResource(id = uiState.ageDisplayInfo.numberIconDrawableId),
-                        contentDescription = "Number Icon",
+                        contentDescription = "Age Icon",
                         modifier = Modifier
                             .height(88.dp)
                             .padding(start = 22.dp, end = 22.dp)
@@ -111,7 +118,7 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                     )
                 }
                 Text(
-                    uiState.ageDisplayInfo.ageLabelText,
+                    ageLabelText,
                     fontSize = 18.sp,
                     color = DarkBlueTextColor,
                     fontFamily = bentonSansFamily,
@@ -148,7 +155,7 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                 )
             }
         }
-        // Display the background image
+        // The background image
         Image(
             painter = painterResource(id = backgroundDrawableId),
             contentDescription = "Background image",
@@ -157,7 +164,7 @@ fun BirthdayScreen(uiState: BirthdayScreenState) {
                 .align(Alignment.BottomCenter),
             contentScale = ContentScale.FillWidth
         )
-
+        //Nanit logo
         Image(
             painter = painterResource(id = R.drawable.nanit),
             contentDescription = "Nanit logo",
@@ -200,7 +207,7 @@ fun BirthdayScreenPreview() {
         babyInfo = sampleBabyInfo,
         isLoading = false,
         errorMessage = null,
-        ageDisplayInfo = AgeDisplayInfo(R.drawable.icon_10, "MONTHS OLD!")
+        ageDisplayInfo = AgeDisplayInfo(R.drawable.icon_10, R.plurals.months_old, 10)
     )
 
     MaterialTheme {

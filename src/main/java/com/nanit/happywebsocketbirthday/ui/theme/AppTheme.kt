@@ -3,7 +3,7 @@ package com.nanit.happywebsocketbirthday.ui.theme
 import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 import com.nanit.happywebsocketbirthday.R
-
+@Suppress("unused")
 enum class AppTheme(
     val themeName: String,
     @DrawableRes val backgroundDrawableId: Int,

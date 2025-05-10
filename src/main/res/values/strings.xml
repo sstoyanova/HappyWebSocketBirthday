@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">HappyWebSocketBirthday</string>
+    <string name="today_baby_name_is_label">Today %1$s is</string>
+
+    <plurals name="months_old">
+        <item quantity="one">MONTH OLD!</item>
+        <item quantity="other">MONTHS OLD!</item>
+    </plurals>
+
+    <plurals name="years_old">
+        <item quantity="one">YEAR OLD!</item>
+        <item quantity="other">YEARS OLD!</item>
+    </plurals>
+    <string name="ip_port_label">IP : Port</string>
+    <string name="ip_port_placeholder">e.g., 192.168.1.1:8080</string>
+    <string name="please_enter_a_valid_ip_port_first">Please enter a valid IP:Port first</string>
+    <string name="connect">Connect</string>
 </resources>

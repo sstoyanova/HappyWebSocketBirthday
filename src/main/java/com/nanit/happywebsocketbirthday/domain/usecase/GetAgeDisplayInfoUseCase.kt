@@ -1,6 +1,5 @@
 package com.nanit.happywebsocketbirthday.domain.usecase
 
-import androidx.annotation.DrawableRes
 import com.nanit.happywebsocketbirthday.R
 import com.nanit.happywebsocketbirthday.domain.model.AgeDisplayInfo
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
@@ -22,31 +21,31 @@ class GetAgeDisplayInfoUseCase @Inject constructor() {
                 timeZone
             )
         }
-        val monthsOrYearsLabel: String
-        @DrawableRes val numberIconDrawableId: Int
 
-        if (wholeMonthsAge != null) {
-            if (wholeMonthsAge <= 12) {
-                monthsOrYearsLabel = if (wholeMonthsAge == 1) "MONTH OLD!"
-                else "MONTHS OLD!"
-                numberIconDrawableId =
-                    numberIconMap[wholeMonthsAge] ?: R.drawable.icon_0
-            } else {
-                val calculatedYears = wholeMonthsAge / 12
-
-                monthsOrYearsLabel = if (calculatedYears == 1) "YEAR OLD!"
-                else "YEARS OLD!"
-
-                numberIconDrawableId = when (calculatedYears) {
-                    in 1..9 -> numberIconMap[calculatedYears] ?: R.drawable.icon_0
-                    else -> R.drawable.icon_0 // Handle other year values with a default
-                }
-            }
-            return AgeDisplayInfo(numberIconDrawableId, monthsOrYearsLabel)
-        } else {
-            //default
-            return AgeDisplayInfo(R.drawable.icon_0, "MONTH OLD!")
+        if (wholeMonthsAge == null) {
+            // Default case: Return the resource ID for months plural and default icon
+            return AgeDisplayInfo(getIconDrawableId(0), R.plurals.months_old, 0)
         }
+
+        if (wholeMonthsAge <= 12) {
+            return AgeDisplayInfo(
+                getIconDrawableId(wholeMonthsAge),
+                R.plurals.months_old,
+                wholeMonthsAge
+            )
+        } else {
+            val calculatedYears = wholeMonthsAge / 12
+            return AgeDisplayInfo(
+                getIconDrawableId(calculatedYears),
+                R.plurals.years_old,
+                calculatedYears
+            )
+        }
+    }
+
+    //returns @DrawableRes icon corresponding to the passed number
+    private fun getIconDrawableId(number: Int): Int {
+        return numberIconMap[number] ?: R.drawable.icon_0
     }
 
     /**
@@ -78,10 +77,10 @@ class GetAgeDisplayInfoUseCase @Inject constructor() {
             // If the current day is before the birth day in the current month,
             // the number of complete months is one less.
             val adjustedMonths = months - 1
-            if (adjustedMonths >= 0) { // Ensure we don't go negative for very young babies
-                return adjustedMonths
+            return if (adjustedMonths >= 0) { // Ensure we don't go negative for very young babies
+                adjustedMonths
             } else {
-                return 0
+                0
             }
         } else {
             return months

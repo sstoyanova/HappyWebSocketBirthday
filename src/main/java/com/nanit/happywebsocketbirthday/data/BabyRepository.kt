@@ -21,7 +21,7 @@ class BabyRepository @Inject constructor(
     private val client: HttpClient,
     private val sharedPreferences: SharedPreferences
 ) {
-    private val BABY_INFO_KEY = "baby_info" // Key for Shared Preferences
+    private val babyInfoKey = "baby_info" // Key for Shared Preferences
 
     fun connectToWebSocket(ipAddress: String, message: String): Flow<BabyInfo?> = flow {
         val (ip, port) = ipAddress.split(":")
@@ -81,7 +81,7 @@ class BabyRepository @Inject constructor(
         try {
             val babyInfoJsonString = babyInfo.toJson() // Use the toJson() instance function
             sharedPreferences.edit {
-                putString(BABY_INFO_KEY, babyInfoJsonString)
+                putString(babyInfoKey, babyInfoJsonString)
                 apply()
             }
             Log.d("BabyRepository", "BabyInfo saved to Shared Preferences")
@@ -92,7 +92,7 @@ class BabyRepository @Inject constructor(
 
     // Function to read BabyInfo from Shared Preferences
     fun getBabyInfoFromPreferences(): BabyInfo? {
-        val babyInfoJsonString = sharedPreferences.getString(BABY_INFO_KEY, null)
+        val babyInfoJsonString = sharedPreferences.getString(babyInfoKey, null)
         return if (babyInfoJsonString != null) {
             try {
                 BabyInfo.fromJson(babyInfoJsonString)
