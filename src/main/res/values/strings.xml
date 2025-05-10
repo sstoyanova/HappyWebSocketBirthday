@@ -15,4 +15,17 @@
     <string name="ip_port_placeholder">e.g., 192.168.1.1:8080</string>
     <string name="please_enter_a_valid_ip_port_first">Please enter a valid IP:Port first</string>
     <string name="connect">Connect</string>
+    <string name="loading_baby_info">Loading baby info…</string>
+    <string name="decoration">Decoration</string>
+    <string name="age_icon">Age Icon</string>
+    <string name="baby_image">Baby Image</string>
+    <string name="choose_or_take_photo_icon">Choose or take photo icon</string>
+    <string name="background_image">Background image</string>
+    <string name="nanit_logo">Nanit logo</string>
+    <string name="picture_selection_cancelled">Picture selection cancelled</string>
+    <string name="taking_picture_failed_or_cancelled">Taking picture failed or cancelled</string>
+    <string name="error_generating_uri_for_picture">Error generating URI for picture</string>
+    <string name="error_creating_file_for_picture">Error creating file for picture</string>
+    <string name="camera_permission_denied">Camera permission denied</string>
+    <string name="camera_permission_is_needed_to_take_photos">Camera permission is needed to take photos.</string>
 </resources>

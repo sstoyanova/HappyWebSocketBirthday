@@ -86,7 +86,7 @@ fun BirthdayScreen(
             } else if (uiState.errorMessage != null) {
                 Text(uiState.errorMessage) // Show error
             } else {
-                Text("Loading baby info...") // Default loading text
+                Text(stringResource(R.string.loading_baby_info)) // Default loading text
             }
         }
         return // Stop rendering if data is not ready
@@ -148,21 +148,21 @@ fun BirthdayScreen(
 
                     Image(
                         painter = painterResource(id = R.drawable.left_swirls),
-                        contentDescription = "Decoration",
+                        contentDescription = stringResource(R.string.decoration),
                         modifier = Modifier
                             .width(50.dp)
                             .align(Alignment.CenterVertically)
                     )
                     Image(
                         painter = painterResource(id = uiState.ageDisplayInfo.numberIconDrawableId),
-                        contentDescription = "Age Icon",
+                        contentDescription = stringResource(R.string.age_icon),
                         modifier = Modifier
                             .height(88.dp)
                             .padding(start = 22.dp, end = 22.dp)
                     )
                     Image(
                         painter = painterResource(id = R.drawable.right_swirls),
-                        contentDescription = "Decoration",
+                        contentDescription = stringResource(R.string.decoration),
                         modifier = Modifier
                             .width(50.dp)
                             .align(Alignment.CenterVertically)
@@ -196,7 +196,7 @@ fun BirthdayScreen(
                         model = uiState.babyPictureUri
                             ?: faceDrawableId, // Use chosen Uri if available, otherwise use the theme face drawable ID
                     ),
-                    contentDescription = "Baby Image",
+                    contentDescription = stringResource(R.string.baby_image),
                     modifier = Modifier
                         .size(circleSize.dp) // Apply the defined size
                         .clip(CircleShape) // Clip to a circle shape
@@ -218,7 +218,7 @@ fun BirthdayScreen(
                     // Use painterResource for the camera icon as it's a drawable
                     Image(
                         painter = painterResource(id = cameraIconDrawableId),
-                        contentDescription = "Choose or take photo icon",
+                        contentDescription = stringResource(R.string.choose_or_take_photo_icon),
                     )
                 }
             }
@@ -226,7 +226,7 @@ fun BirthdayScreen(
         // The background image
         Image(
             painter = painterResource(id = backgroundDrawableId),
-            contentDescription = "Background image",
+            contentDescription = stringResource(R.string.background_image),
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter),
@@ -235,7 +235,7 @@ fun BirthdayScreen(
         //Nanit logo
         Image(
             painter = painterResource(id = R.drawable.nanit),
-            contentDescription = "Nanit logo",
+            contentDescription = stringResource(R.string.nanit_logo),
             modifier = Modifier
                 .padding(
                     bottom = 100.dp
@@ -270,7 +270,10 @@ fun BirthdayScreen(
                 viewModel.updateBabyPictureUri(uri) // Update ViewModel state with the selected Uri
             } else {
                 // Handle the case where the user cancelled picture selection
-                Toast.makeText(context, "Picture selection cancelled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.picture_selection_cancelled), Toast.LENGTH_SHORT
+                ).show()
             }
         }
     )
@@ -285,7 +288,11 @@ fun BirthdayScreen(
                 viewModel.updateBabyPictureUri(tempPhotoUri) // Update ViewModel state with the temporary Uri
             } else {
                 // Handle the case where taking a picture failed or was cancelled
-                Toast.makeText(context, "Taking picture failed or cancelled", Toast.LENGTH_SHORT)
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.taking_picture_failed_or_cancelled),
+                    Toast.LENGTH_SHORT
+                )
                     .show()
             }
             tempPhotoUri = null // Clear temporary Uri after use, regardless of success
@@ -311,7 +318,7 @@ fun BirthdayScreen(
                         // Handle the case where getUriForFile failed
                         Toast.makeText(
                             context,
-                            "Error generating URI for picture",
+                            context.getString(R.string.error_generating_uri_for_picture),
                             Toast.LENGTH_SHORT
                         ).show()
                         Log.e(
@@ -321,7 +328,11 @@ fun BirthdayScreen(
                     }
                 } else {
                     // Handle the case where createTempImageFile failed
-                    Toast.makeText(context, "Error creating file for picture", Toast.LENGTH_SHORT)
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.error_creating_file_for_picture),
+                        Toast.LENGTH_SHORT
+                    )
                         .show()
                     Log.e(
                         "BirthdayScreen",
@@ -330,7 +341,10 @@ fun BirthdayScreen(
                 }
             } else {
                 // Permission denied
-                Toast.makeText(context, "Camera permission denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.camera_permission_denied), Toast.LENGTH_SHORT
+                ).show()
             }
         }
     )
@@ -365,22 +379,32 @@ fun BirthdayScreen(
                     } else {
                         Toast.makeText(
                             context,
-                            "Error creating file for picture",
+                            context.getString(R.string.error_creating_file_for_picture),
                             Toast.LENGTH_SHORT
                         ).show()
                         // Handle the case where getUriForFile failed
                         Toast.makeText(
                             context,
-                            "Error generating URI for picture",
+                            context.getString(R.string.error_generating_uri_for_picture),
                             Toast.LENGTH_SHORT
                         ).show()
-                        Log.e("BirthdayScreen", "getUriForFile returned null") // Log the error
+                        Log.e(
+                            "BirthdayScreen",
+                            "getUriForFile returned null"
+                        ) // Log the error
                     }
                 } else {
                     // Handle the case where createTempImageFile failed
-                    Toast.makeText(context, "Error creating file for picture", Toast.LENGTH_SHORT)
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.error_creating_file_for_picture),
+                        Toast.LENGTH_SHORT
+                    )
                         .show()
-                    Log.e("BirthdayScreen", "createTempImageFile returned null") // Log the error
+                    Log.e(
+                        "BirthdayScreen",
+                        "createTempImageFile returned null"
+                    ) // Log the error
                 }
             }
 
@@ -391,7 +415,7 @@ fun BirthdayScreen(
                 // Explain why the permission is needed if the user previously denied it
                 Toast.makeText(
                     context,
-                    "Camera permission is needed to take photos.",
+                    context.getString(R.string.camera_permission_is_needed_to_take_photos),
                     Toast.LENGTH_LONG
                 ).show()
                 cameraPermissionLauncher.launch(Manifest.permission.CAMERA) // Request again
