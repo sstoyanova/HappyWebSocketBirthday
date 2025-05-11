@@ -14,12 +14,7 @@ import com.nanit.happywebsocketbirthday.presentation.birthday.BirthdayScreen
 import com.nanit.happywebsocketbirthday.presentation.ipsetup.IpSetupScreen
 import com.nanit.happywebsocketbirthday.ui.theme.HappyWebSocketBirthdayTheme
 import dagger.hilt.android.AndroidEntryPoint
-
-// Define your routes
-object AppDestinations {
-    const val IP_ADDRESS_ROUTE = "ip_address"
-    const val BABY_INFO_ROUTE = "baby_info"
-}
+import kotlinx.serialization.Serializable
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -32,18 +27,16 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = AppDestinations.IP_ADDRESS_ROUTE
+                        startDestination = IpSetupScreen
                     ) {
-                        composable(AppDestinations.IP_ADDRESS_ROUTE) {
+                        composable<IpSetupScreen> {
                             IpSetupScreen(
                                 onNavigateToBabyInfo = {
-                                    navController.navigate(AppDestinations.BABY_INFO_ROUTE)
+                                    navController.navigate(BirthdayScreen)
                                 }
                             )
                         }
-                        composable(
-                            route = AppDestinations.BABY_INFO_ROUTE
-                        ) {
+                        composable<BirthdayScreen>{
                             // Display the BabyInfoScreen with the data
                             BirthdayScreen()
                         }
@@ -53,3 +46,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+@Serializable
+object IpSetupScreen
+
+@Serializable
+object BirthdayScreen

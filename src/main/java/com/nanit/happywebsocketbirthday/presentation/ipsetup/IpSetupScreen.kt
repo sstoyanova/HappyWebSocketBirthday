@@ -127,8 +127,8 @@ fun IpSetupScreen(
     }
 
     // Use LaunchedEffect to trigger navigation when babyInfoReceived is true
-    LaunchedEffect(key1 = state.babyInfoReceived) {
-        if (state.babyInfoReceived) {
+    LaunchedEffect(key1 = state.babyInfo) {
+        if (state.babyInfo != null) {
             onNavigateToBabyInfo() // Trigger navigation
         }
     }
@@ -159,7 +159,6 @@ fun IpAddressSetupScreenPreview() {
         ipPort = "192.168.1.1:8080", // Sample IP and port
         validationResult = ValidationResult(true), // Assume valid for preview
         isLoading = false,
-        babyInfoReceived = false, // Assume no info received initially
         connectionStatusText = "Not connected",
         messageStatusText = "Send message",
         babyInfoStatusText = "No baby info received yet"

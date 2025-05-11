@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanit.happywebsocketbirthday.ValidationResult
 import com.nanit.happywebsocketbirthday.data.network.WebSocketClient
+import com.nanit.happywebsocketbirthday.data.toDomainModel
 import com.nanit.happywebsocketbirthday.domain.model.Result
 import com.nanit.happywebsocketbirthday.domain.usecase.ConnectToWSUseCase
 import com.nanit.happywebsocketbirthday.domain.usecase.SaveBabyInfoToPreferencesUseCase
@@ -149,7 +150,7 @@ class IpSetupViewModel @Inject constructor(
                                 _state.update {
                                     it.copy(
                                         isLoading = false, // Stop loading when info is received
-                                        babyInfoReceived = true, // Indicate reception
+                                        babyInfo = apiBabyInfo.toDomainModel(), // Indicate reception
                                         babyInfoStatusText = "Received: ${apiBabyInfo.toJson()}",
                                     )
                                 }
@@ -163,7 +164,6 @@ class IpSetupViewModel @Inject constructor(
                                 _state.update {
                                     it.copy(
                                         isLoading = false, // Stop loading
-                                        babyInfoReceived = false,
                                         babyInfoStatusText = "Received empty baby info from server"
                                     )
                                 }
@@ -179,7 +179,6 @@ class IpSetupViewModel @Inject constructor(
                             _state.update {
                                 it.copy(
                                     isLoading = false, // Stop loading on error
-                                    babyInfoReceived = false,
                                     babyInfoStatusText = result.message
                                 )
                             }
@@ -317,16 +316,12 @@ class IpSetupViewModel @Inject constructor(
     fun resetNavigationTriggerState() {
         _state.update { currentState ->
             currentState.copy(
-                babyInfoReceived = false
+                babyInfo = null
             )
         }
     }
 
-    fun onIpPortSet(newIpPort: String) {
-        _state.value = _state.value.copy(ipPort = newIpPort)
-    }
-
-    fun onValidationResultChanged(newValidationResult: ValidationResult) {
+    private fun onValidationResultChanged(newValidationResult: ValidationResult) {
         _state.value = _state.value.copy(validationResult = newValidationResult)
     }
 
