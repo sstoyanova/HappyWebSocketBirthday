@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.ktor.client.websockets) // Check for latest version
     // Ktor CIO Engine
     implementation(libs.ktor.client.cio)
+    // Ktor Logging
+    implementation(libs.ktor.client.logging)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

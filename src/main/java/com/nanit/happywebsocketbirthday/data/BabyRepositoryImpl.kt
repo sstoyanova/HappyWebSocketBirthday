@@ -6,10 +6,10 @@ import androidx.core.content.edit
 import com.nanit.happywebsocketbirthday.data.model.ApiBabyInfo
 import com.nanit.happywebsocketbirthday.data.network.WebSocketClient
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
+import com.nanit.happywebsocketbirthday.domain.model.Result
 import com.nanit.happywebsocketbirthday.domain.repository.BabyRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,23 +21,22 @@ class BabyRepositoryImpl @Inject constructor(
     private val babyInfoKey = "baby_info" // Key for Shared Preferences
 
     // Function to fetch BabyInfo directly from the WebSocket
-    override fun getBabyInfoFromNetwork(ipAddress: String, message: String): Flow<BabyInfo?> {
-        // Directly delegate the connection and data reception to the WebSocketClient
-        // The Repository acts as an access point to this data source.
-        return webSocketClient.connectAndReceiveBabyInfo(ipAddress, message)
-            .onEach { babyInfo ->
-                if (babyInfo != null) {
-                    Log.d("BabyRepository", "Received BabyInfo from WebSocket")
-                } else {
-                    Log.d(
-                        "BabyRepository",
-                        "Received null BabyInfo from WebSocket or error occurred"
-                    )
-                }
-            }
-            .map { apiBabyInfo ->
-                apiBabyInfo?.toDomainModel()
-            } // Map ApiBabyInfo to DomainBabyInfo for the use case
+    override suspend fun sendMessageToWS(message: String): Result<Unit> { // Return Result<Unit>
+        return webSocketClient.sendMessage(message)
+    }
+
+    // Function to fetch BabyInfo directly from the WebSocket
+    override suspend fun connectToWS(ipAddress: String): Flow<Result<String>> = flow {
+        try {
+            // Call the suspend functions within the coroutine
+            webSocketClient.connect(ipAddress)
+            emit(Result.Success("Connected to $ipAddress"))
+        } catch (e: Exception) {
+            Log.e("BabyRepository", "Error during WebSocket connection or sending message", e)
+            // Handle the error appropriately, perhaps by emitting an error state
+            // through a separate Flow or channel if needed.
+            emit(Result.Error(e.message ?: "Unknown error", e))
+        }
     }
 
     // Function to save BabyInfo to Shared Preferences

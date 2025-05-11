@@ -40,6 +40,7 @@ fun IpSetupScreen(
     uiState: IpSetupScreenState,
     onIpPortChange: (String) -> Unit, // Callback for IP/Port changes
     onConnectClick: () -> Unit, // Callback for the Connect button click
+    onSendMessageClick: () -> Unit, // Callback for the SendMessage button click
 ) {
     val context = LocalContext.current
 
@@ -59,15 +60,9 @@ fun IpSetupScreen(
             ),
             fontSize = 21.sp
         )
-        if (uiState.babyInfoReceived) {
-            Text("Baby info received! ${uiState.babyInfo}")
-        } else {
-            if (uiState.errorMessage != null) {
-                Text(uiState.errorMessage + " Try again.")
-            } else {
-                Text("Waiting for IP setup and will fetch baby info automatically.")
-            }
-        }
+        Text(uiState.connectionStatusText, Modifier.padding(bottom = 16.dp))
+        Text(uiState.messageStatusText, Modifier.padding(bottom = 16.dp))
+        Text(uiState.babyInfoStatusText)
 
         OutlinedTextField(
             //A text box that displays the string value you pass here.
@@ -114,10 +109,20 @@ fun IpSetupScreen(
                     ).show()
                 }
             },
-            modifier = Modifier.padding(top = 32.dp, bottom = 64.dp),
+            modifier = Modifier.padding(top = 32.dp),
             enabled = uiState.validationResult.isValid && uiState.ipPort.isNotEmpty() && !uiState.isLoading
         ) {
             Text(stringResource(R.string.connect))
+        }
+
+        Button(
+            onClick = {
+                onSendMessageClick()
+            },
+            modifier = Modifier.padding(top = 32.dp),
+            enabled = uiState.isConnected
+        ) {
+            Text(stringResource(R.string.send_message))
         }
     }
 }
@@ -128,8 +133,7 @@ fun IpSetupScreen(
     onNavigateToBabyInfo: () -> Unit,
     viewModel: IpSetupViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-
+    val state by viewModel.state.collectAsStateWithLifecycle()
     // Use DisposableEffect to manage the ViewModel's state based on composable lifecycle
     DisposableEffect(Unit) {
         onDispose {
@@ -139,13 +143,13 @@ fun IpSetupScreen(
     }
 
     // Use LaunchedEffect to trigger navigation when babyInfoReceived is true
-    LaunchedEffect(key1 = uiState.babyInfoReceived) {
-        if (uiState.babyInfoReceived) {
+    LaunchedEffect(key1 = state.babyInfoReceived) {
+        if (state.babyInfoReceived) {
             onNavigateToBabyInfo() // Trigger navigation
         }
     }
     IpSetupScreen(
-        uiState = uiState,
+        uiState = state,
         onIpPortChange = { newValue ->
             viewModel.updateIpPort(newValue)
             // Trigger validation in the ViewModel when the IP/Port changes
@@ -155,14 +159,17 @@ fun IpSetupScreen(
             // When the button is clicked, trigger the connection logic in the ViewModel
             // The ViewModel will handle validation before connecting
             val validationResult =
-                isValidIpPortFormat(uiState.ipPort) // Re-validate before connecting
+                isValidIpPortFormat(state.ipPort) // Re-validate before connecting
             viewModel.updateValidationResult(validationResult) // Update validation state
 
-            if (validationResult.isValid && uiState.ipPort.isNotEmpty()) {
-                viewModel.connectToWebSocket(uiState.ipPort)
+            if (validationResult.isValid && state.ipPort.isNotEmpty()) {
+                viewModel.connectToWebSocket(state.ipPort)
             } else {
                 // The state-driven composable handles the Toast for invalid input
             }
+        },
+        onSendMessageClick = {
+            viewModel.sendMessageToWebSocket()
         }
     )
 }
@@ -179,8 +186,9 @@ fun IpAddressSetupScreenPreview() {
         validationResult = ValidationResult(true), // Assume valid for preview
         isLoading = false,
         babyInfoReceived = false, // Assume no info received initially
-        errorMessage = null,
-        babyInfo = null // No baby info yet in this state
+        connectionStatusText = "Not connected",
+        messageStatusText = "Send message",
+        babyInfoStatusText = "No baby info received yet"
     )
 
     MaterialTheme {
@@ -189,6 +197,7 @@ fun IpAddressSetupScreenPreview() {
                 uiState = sampleUiState,
                 onIpPortChange = {}, //empty lambdas for preview
                 onConnectClick = {},
+                onSendMessageClick = {}
             )
         }
     }
