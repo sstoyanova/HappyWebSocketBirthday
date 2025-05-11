@@ -7,7 +7,9 @@ import com.nanit.happywebsocketbirthday.ValidationResult
 import com.nanit.happywebsocketbirthday.data.network.WebSocketClient
 import com.nanit.happywebsocketbirthday.domain.model.Result
 import com.nanit.happywebsocketbirthday.domain.usecase.ConnectToWSUseCase
+import com.nanit.happywebsocketbirthday.domain.usecase.SaveBabyInfoToPreferencesUseCase
 import com.nanit.happywebsocketbirthday.domain.usecase.SendMessageUseCase
+import com.nanit.happywebsocketbirthday.isValidIpPortFormat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +25,7 @@ import javax.inject.Inject
 class IpSetupViewModel @Inject constructor(
     private val connectToWSUseCase: ConnectToWSUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
+    private val saveBabyInfoToPreferencesUseCase: SaveBabyInfoToPreferencesUseCase,
     private val webSocketClient: WebSocketClient
 ) : ViewModel() {
 
@@ -142,11 +145,12 @@ class IpSetupViewModel @Inject constructor(
                                     "IpSetupViewModel",
                                     "Successfully parsed and received ApiBabyInfo in collector."
                                 )
+                                saveBabyInfoToPreferencesUseCase(apiBabyInfo)
                                 _state.update {
                                     it.copy(
                                         isLoading = false, // Stop loading when info is received
                                         babyInfoReceived = true, // Indicate reception
-                                        babyInfoStatusText = "Received: ${apiBabyInfo.toJson()}"
+                                        babyInfoStatusText = "Received: ${apiBabyInfo.toJson()}",
                                     )
                                 }
                                 // If you only expect ONE baby info message and then want to stop
@@ -201,7 +205,7 @@ class IpSetupViewModel @Inject constructor(
     }
 
 
-    fun connectToWebSocket(ipAddress: String) {
+    private fun connectToWebSocket(ipAddress: String) {
         viewModelScope.launch {
             // Set loading initially before starting the process
             _state.value =
@@ -252,7 +256,7 @@ class IpSetupViewModel @Inject constructor(
         }
     }
 
-    fun sendMessageToWebSocket() {
+    fun onSendMessageClick() {
         // Check if connected before sending
         if (_state.value.isConnected) {
             viewModelScope.launch {
@@ -318,11 +322,44 @@ class IpSetupViewModel @Inject constructor(
         }
     }
 
-    fun updateIpPort(newIpPort: String) {
+    fun onIpPortSet(newIpPort: String) {
         _state.value = _state.value.copy(ipPort = newIpPort)
     }
 
-    fun updateValidationResult(newValidationResult: ValidationResult) {
+    fun onValidationResultChanged(newValidationResult: ValidationResult) {
         _state.value = _state.value.copy(validationResult = newValidationResult)
+    }
+
+
+    fun onConnectClick() {
+        // Get the current IP and port from the ViewModel's state
+        val currentIpPort = _state.value.ipPort
+
+        // Perform the validation
+        val validationResult = isValidIpPortFormat(currentIpPort)
+
+        // Update the validation state within the ViewModel
+        onValidationResultChanged(validationResult)
+
+        // If validation is successful and the IP/Port is not empty, proceed with connection
+        if (validationResult.isValid && currentIpPort.isNotEmpty()) {
+            // Call the existing connectToWebSocket function with the validated IP
+            connectToWebSocket(currentIpPort)
+        } else {
+            Log.d("IpSetupViewModel", "Connect button clicked with invalid IP/Port: $currentIpPort")
+            // The UI composable observing state.validationResult will show the error message
+        }
+    }
+
+    // Function to handle changes to the IP/Port input
+    fun onIpPortChanged(newIpPort: String) {
+        // Update the ipPort state immediately
+        _state.update { it.copy(ipPort = newIpPort) }
+
+        // Perform validation on the new value
+        val validationResult = isValidIpPortFormat(newIpPort)
+
+        // Update the validation result state based on the validation
+        _state.update { it.copy(validationResult = validationResult) }
     }
 }

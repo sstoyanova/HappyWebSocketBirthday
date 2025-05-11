@@ -1,6 +1,7 @@
 package com.nanit.happywebsocketbirthday.presentation.birthday
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanit.happywebsocketbirthday.R
@@ -53,7 +54,6 @@ class BirthdayScreenViewModel @Inject constructor(
 
     init {
         loadInitialBabyInfoFromPreferences()
-
     }
 
     // Function to load initial baby info from Shared Preferences
@@ -65,6 +65,7 @@ class BirthdayScreenViewModel @Inject constructor(
             val loadedBabyInfo = getBabyInfoFromPreferencesUseCase() // Call the Use Case
             _uiState.update {
                 if (loadedBabyInfo != null) {
+                    Log.d("BirthdayScreenViewModel", "loadInitialBabyInfoFromPreferences: loaded baby info from prefs:$loadedBabyInfo")
                     it.copy(
                         babyInfo = loadedBabyInfo,
                         isLoading = false,
@@ -116,7 +117,7 @@ class BirthdayScreenViewModel @Inject constructor(
         }
     }
 
-    fun updateBabyPictureUri(uri: Uri?) { // Renamed parameter for clarity
+    fun onPictureSelected(uri: Uri?) { // Renamed parameter for clarity
         _uiState.update { currentState ->
             currentState.copy(babyPictureUri = uri)
         }

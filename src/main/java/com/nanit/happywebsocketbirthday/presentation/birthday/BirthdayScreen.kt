@@ -267,7 +267,7 @@ fun BirthdayScreen(
         onResult = { uri: Uri? ->
             // Handle the selected URI from the gallery
             if (uri != null) {
-                viewModel.updateBabyPictureUri(uri) // Update ViewModel state with the selected Uri
+                viewModel.onPictureSelected(uri) // Update ViewModel state with the selected Uri
             } else {
                 // Handle the case where the user cancelled picture selection
                 Toast.makeText(
@@ -285,7 +285,7 @@ fun BirthdayScreen(
             // Handle the result (success or failure) from the camera
             if (success) {
                 // Picture was saved to the tempPhotoUri you provided
-                viewModel.updateBabyPictureUri(tempPhotoUri) // Update ViewModel state with the temporary Uri
+                viewModel.onPictureSelected(tempPhotoUri) // Update ViewModel state with the temporary Uri
             } else {
                 // Handle the case where taking a picture failed or was cancelled
                 Toast.makeText(

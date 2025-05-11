@@ -40,17 +40,18 @@ class BabyRepositoryImpl @Inject constructor(
     }
 
     // Function to save BabyInfo to Shared Preferences
-    override fun saveBabyInfo(babyInfo: BabyInfo) {
+    override fun saveBabyInfo(apiBabyInfo: ApiBabyInfo): Result<Unit> {
         try {
-            val apiBabyInfo = babyInfo.toApiModel() // Map domain model to data model
             val babyInfoJsonString = apiBabyInfo.toJson() // Use toJson from ApiBabyInfo
             sharedPreferences.edit {
                 putString(babyInfoKey, babyInfoJsonString)
                 apply()
             }
             Log.d("BabyRepository", "BabyInfo saved to Shared Preferences")
+            return Result.Success(Unit)
         } catch (e: Exception) {
             Log.e("BabyRepository", "Error saving BabyInfo to Shared Preferences: ${e.message}")
+            return Result.Error(e.message ?: "Unknown error", e)
         }
     }
 

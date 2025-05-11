@@ -1,6 +1,5 @@
 package com.nanit.happywebsocketbirthday.presentation.ipsetup
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +13,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -22,7 +20,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,7 +30,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nanit.happywebsocketbirthday.R
 import com.nanit.happywebsocketbirthday.ValidationResult
-import com.nanit.happywebsocketbirthday.isValidIpPortFormat
 
 @Composable
 fun IpSetupScreen(
@@ -42,8 +38,6 @@ fun IpSetupScreen(
     onConnectClick: () -> Unit, // Callback for the Connect button click
     onSendMessageClick: () -> Unit, // Callback for the SendMessage button click
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier = Modifier
             .statusBarsPadding()
@@ -83,7 +77,7 @@ fun IpSetupScreen(
                 keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Done
             ),
-            modifier = Modifier.padding(top = 64.dp, bottom = 32.dp)
+            modifier = Modifier.padding(top = 32.dp, bottom = 32.dp)
         )
 
         if (uiState.isLoading) {
@@ -98,17 +92,7 @@ fun IpSetupScreen(
             Spacer(modifier = Modifier.height(64.dp))
         }
         Button(
-            onClick = {
-                if (uiState.validationResult.isValid && uiState.ipPort.isNotEmpty()) {
-                    onConnectClick() // Call the callback for the connect button click
-                } else {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.please_enter_a_valid_ip_port_first),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            },
+            onClick = { onConnectClick() },
             modifier = Modifier.padding(top = 32.dp),
             enabled = uiState.validationResult.isValid && uiState.ipPort.isNotEmpty() && !uiState.isLoading
         ) {
@@ -119,7 +103,7 @@ fun IpSetupScreen(
             onClick = {
                 onSendMessageClick()
             },
-            modifier = Modifier.padding(top = 32.dp),
+            modifier = Modifier.padding(top = 16.dp),
             enabled = uiState.isConnected
         ) {
             Text(stringResource(R.string.send_message))
@@ -151,25 +135,15 @@ fun IpSetupScreen(
     IpSetupScreen(
         uiState = state,
         onIpPortChange = { newValue ->
-            viewModel.updateIpPort(newValue)
-            // Trigger validation in the ViewModel when the IP/Port changes
-            viewModel.updateValidationResult(isValidIpPortFormat(newValue)) // Ensure isValidIpPortFormat is accessible
+            // When the IP/Port text changes, simply trigger the onIpPortChanged function in the ViewModel
+            viewModel.onIpPortChanged(newValue)
         },
         onConnectClick = {
-            // When the button is clicked, trigger the connection logic in the ViewModel
-            // The ViewModel will handle validation before connecting
-            val validationResult =
-                isValidIpPortFormat(state.ipPort) // Re-validate before connecting
-            viewModel.updateValidationResult(validationResult) // Update validation state
-
-            if (validationResult.isValid && state.ipPort.isNotEmpty()) {
-                viewModel.connectToWebSocket(state.ipPort)
-            } else {
-                // The state-driven composable handles the Toast for invalid input
-            }
+            // When the button is clicked, simply trigger the onConnectClick function in the ViewModel
+            viewModel.onConnectClick()
         },
         onSendMessageClick = {
-            viewModel.sendMessageToWebSocket()
+            viewModel.onSendMessageClick()
         }
     )
 }
@@ -191,14 +165,11 @@ fun IpAddressSetupScreenPreview() {
         babyInfoStatusText = "No baby info received yet"
     )
 
-    MaterialTheme {
-        Surface {
-            IpSetupScreen(
-                uiState = sampleUiState,
-                onIpPortChange = {}, //empty lambdas for preview
-                onConnectClick = {},
-                onSendMessageClick = {}
-            )
-        }
-    }
+    IpSetupScreen(
+        uiState = sampleUiState,
+        onIpPortChange = {}, //empty lambdas for preview
+        onConnectClick = {},
+        onSendMessageClick = {}
+    )
+
 }
