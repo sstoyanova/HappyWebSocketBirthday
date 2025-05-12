@@ -37,7 +37,7 @@ object AppModule {
     fun provideHttpClient(): HttpClient {
         return HttpClient(CIO) {
             install(Logging) {
-                logger =  Logger.ANDROID // Use SLF4J for logging() // todo Use the SLF4J logger
+                logger =  Logger.ANDROID
                 level = LogLevel.ALL // Set the desired log level
             }
             install(WebSockets)

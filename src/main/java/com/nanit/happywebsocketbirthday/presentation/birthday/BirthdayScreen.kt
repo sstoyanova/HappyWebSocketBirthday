@@ -61,7 +61,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.nanit.happywebsocketbirthday.R
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
-import com.nanit.happywebsocketbirthday.presentation.model.AgeDisplayInfo
 import com.nanit.happywebsocketbirthday.presentation.utils.FileProviderUtils.createTempImageFile
 import com.nanit.happywebsocketbirthday.presentation.utils.FileProviderUtils.getUriForFile
 import com.nanit.happywebsocketbirthday.ui.theme.AppTheme

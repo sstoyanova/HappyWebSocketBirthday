@@ -1,4 +1,4 @@
-package com.nanit.happywebsocketbirthday.presentation.model
+package com.nanit.happywebsocketbirthday.presentation.birthday
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.PluralsRes

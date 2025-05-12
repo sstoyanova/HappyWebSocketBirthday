@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanit.happywebsocketbirthday.ValidationResult
 import com.nanit.happywebsocketbirthday.data.network.WebSocketClient
-import com.nanit.happywebsocketbirthday.data.toDomainModel
 import com.nanit.happywebsocketbirthday.domain.model.Result
 import com.nanit.happywebsocketbirthday.domain.usecase.ConnectToWSUseCase
 import com.nanit.happywebsocketbirthday.domain.usecase.SaveBabyInfoToPreferencesUseCase
@@ -140,18 +139,18 @@ class IpSetupViewModel @Inject constructor(
                     Log.d("IpSetupViewModel", "Received baby info result in collector: $result")
                     when (result) {
                         is Result.Success -> {
-                            val apiBabyInfo = result.data
-                            if (apiBabyInfo != null) {
+                            val babyInfo = result.data
+                            if (babyInfo != null) {
                                 Log.d(
                                     "IpSetupViewModel",
                                     "Successfully parsed and received ApiBabyInfo in collector."
                                 )
-                                saveBabyInfoToPreferencesUseCase(apiBabyInfo)
+                                saveBabyInfoToPreferencesUseCase(babyInfo)
                                 _state.update {
                                     it.copy(
                                         isLoading = false, // Stop loading when info is received
-                                        babyInfo = apiBabyInfo.toDomainModel(), // Indicate reception
-                                        babyInfoStatusText = "Received: ${apiBabyInfo.toJson()}",
+                                        babyInfo = babyInfo, // Indicate reception
+                                        babyInfoStatusText = "Received: ${babyInfo}",
                                     )
                                 }
                                 // If you only expect ONE baby info message and then want to stop
@@ -159,7 +158,7 @@ class IpSetupViewModel @Inject constructor(
                             } else {
                                 Log.w(
                                     "IpSetupViewModel",
-                                    "Received null ApiBabyInfo in Success state in collector."
+                                    "Received null BabyInfo in Success state in collector."
                                 )
                                 _state.update {
                                     it.copy(

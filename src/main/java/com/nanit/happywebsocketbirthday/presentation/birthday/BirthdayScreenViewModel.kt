@@ -1,15 +1,14 @@
 package com.nanit.happywebsocketbirthday.presentation.birthday
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanit.happywebsocketbirthday.R
 import com.nanit.happywebsocketbirthday.domain.model.AgeResult
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
+import com.nanit.happywebsocketbirthday.domain.model.Result
 import com.nanit.happywebsocketbirthday.domain.usecase.GetAgeDisplayInfoUseCase
 import com.nanit.happywebsocketbirthday.domain.usecase.GetBabyInfoFromPreferencesUseCase
-import com.nanit.happywebsocketbirthday.presentation.model.AgeDisplayInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,23 +61,31 @@ class BirthdayScreenViewModel @Inject constructor(
             // Set loading state immediately
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            val loadedBabyInfo = getBabyInfoFromPreferencesUseCase() // Call the Use Case
+            val loadedBabyInfoResult = getBabyInfoFromPreferencesUseCase()
             _uiState.update {
-                if (loadedBabyInfo != null) {
-                    Log.d("BirthdayScreenViewModel", "loadInitialBabyInfoFromPreferences: loaded baby info from prefs:$loadedBabyInfo")
-                    it.copy(
-                        babyInfo = loadedBabyInfo,
-                        isLoading = false,
-                        errorMessage = null,
-                        ageDisplayInfo = calculateAndGetAgeDisplayInfo(loadedBabyInfo)
-                    )
-                } else {
-                    it.copy(
-                        isLoading = false,
-                        // Maybe a different error message if it's just not found initially
-                        errorMessage = "No saved baby info found.",
-                        ageDisplayInfo = calculateAndGetAgeDisplayInfo(null)
-                    )
+                when (loadedBabyInfoResult) {
+                    is Result.Success -> {
+                        val loadedBabyInfo = loadedBabyInfoResult.data
+                        it.copy(
+                            babyInfo = loadedBabyInfo,
+                            isLoading = false,
+                            errorMessage = null,
+                            ageDisplayInfo = calculateAndGetAgeDisplayInfo(loadedBabyInfo)
+                        )
+                    }
+
+                    is Result.Error -> {
+                        it.copy(
+                            isLoading = false,
+                            // Maybe a different error message if it's just not found initially
+                            errorMessage = loadedBabyInfoResult.message,
+                            ageDisplayInfo = calculateAndGetAgeDisplayInfo(null)
+                        )
+                    }
+
+                    else -> {
+                        it.copy(isLoading = true, errorMessage = null)
+                    }
                 }
             }
         }

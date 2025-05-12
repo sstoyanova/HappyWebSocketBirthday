@@ -1,7 +1,7 @@
 package com.nanit.happywebsocketbirthday.data.network
 
 import android.util.Log
-import com.nanit.happywebsocketbirthday.data.model.ApiBabyInfo
+import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 import com.nanit.happywebsocketbirthday.domain.model.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocketSession
@@ -22,6 +22,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.net.ConnectException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -256,8 +260,8 @@ class WebSocketClient @Inject constructor(
         }
     }
 
-    // Flow to collect and parse incoming messages specifically as ApiBabyInfo
-    fun receiveBabyInfo(): Flow<Result<ApiBabyInfo?>> {
+    // Flow to collect and parse incoming messages specifically as BabyInfo
+    fun receiveBabyInfo(): Flow<Result<BabyInfo?>> {
         // Collect from the central incomingMessages flow and map/filter
         return incomingMessages
             .map { result -> // Map the Result<String>
@@ -265,7 +269,8 @@ class WebSocketClient @Inject constructor(
                     is Result.Success -> {
                         try {
                             // Attempt to parse the received text as ApiBabyInfo
-                            Result.Success(ApiBabyInfo.fromJson(result.data)) // Wrap successful parsing in Success
+                            val apiBabyInfo = ApiBabyInfo.fromJson(result.data)
+                            Result.Success(apiBabyInfo.toDomain()) // Map to BabyInfo), Wrap successful parsing in Success
                         } catch (e: Exception) {
                             // Log parsing errors and emit an Error Result
                             Log.d("WebSocketClient", "Parsing error for message: ${result.data}", e)
@@ -275,12 +280,10 @@ class WebSocketClient @Inject constructor(
                             ) // Emit Error on parsing failure
                         }
                     }
-
                     is Result.Error -> result // Pass through existing errors from message reception
-                    is Result.Loading -> Result.Loading // Pass through loading state if used
+                    is Result.Loading -> Result.Loading
                 }
             }
-        // If you only expect ONE baby info message and then want to stop
         // .take(1) // Uncomment this if you want to stop after the first valid BabyInfo is received
     }
 
@@ -301,6 +304,34 @@ class WebSocketClient @Inject constructor(
             sessionJob = null
             Log.d("WebSocketClient", "Emitting ConnectionState.Disconnected (Disconnected by user)")
             _connectionState.emit(ConnectionState.Disconnected("Disconnected by user")) // Ensure state is updated
+        }
+    }
+
+    /**
+     * Represents the information about a baby received from the API.
+     *
+     * This data class is used to deserialize the JSON response containing baby details.
+     * It includes the baby's name, date of birth, and the selected theme.
+     */
+    @Serializable
+    private data class ApiBabyInfo(
+        @SerialName("name") val name: String,
+        @SerialName("dob") val dob: Long,
+        @SerialName("theme") val theme: String
+    ) {
+
+        fun toJson(): String {
+            return Json.encodeToString(this)
+        }
+
+        fun toDomain(): BabyInfo {
+            return BabyInfo(name,dob,theme)
+        }
+
+        companion object {
+            fun fromJson(jsonString: String): ApiBabyInfo {
+                return Json.decodeFromString(serializer(), jsonString)
+            }
         }
     }
 }

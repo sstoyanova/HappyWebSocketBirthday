@@ -37,7 +37,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable<BirthdayScreen>{
-                            // Display the BabyInfoScreen with the data
                             BirthdayScreen()
                         }
                     }

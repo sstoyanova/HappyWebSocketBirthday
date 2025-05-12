@@ -16,5 +16,5 @@ package com.nanit.happywebsocketbirthday.domain.model
 sealed class Result<out T> {
     data class Success<out T>(val data: T) : Result<T>()
     data class Error(val message: String, val exception: Throwable? = null) : Result<Nothing>()
-    data object Loading : Result<Nothing>() // Optional: if you want to indicate loading in the Flow
+    data object Loading : Result<Nothing>()
 }

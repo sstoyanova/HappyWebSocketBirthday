@@ -3,7 +3,6 @@ package com.nanit.happywebsocketbirthday.data
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
-import com.nanit.happywebsocketbirthday.data.model.ApiBabyInfo
 import com.nanit.happywebsocketbirthday.data.network.WebSocketClient
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 import com.nanit.happywebsocketbirthday.domain.model.Result
@@ -18,7 +17,9 @@ class BabyRepositoryImpl @Inject constructor(
     private val webSocketClient: WebSocketClient,
     private val sharedPreferences: SharedPreferences
 ) : BabyRepository {
-    private val babyInfoKey = "baby_info" // Key for Shared Preferences
+    private val babyInfoNameKey = "baby_info_name" // Key for Shared Preferences
+    private val babyInfoDobKey = "baby_info_date_of_birth" // Key for Shared Preferences
+    private val babyInfoThemeKey = "baby_info_theme" // Key for Shared Preferences
 
     // Function to fetch BabyInfo directly from the WebSocket
     override suspend fun sendMessageToWS(message: String): Result<Unit> { // Return Result<Unit>
@@ -40,11 +41,12 @@ class BabyRepositoryImpl @Inject constructor(
     }
 
     // Function to save BabyInfo to Shared Preferences
-    override fun saveBabyInfo(apiBabyInfo: ApiBabyInfo): Result<Unit> {
+    override fun saveBabyInfo(babyInfo: BabyInfo): Result<Unit> {
         try {
-            val babyInfoJsonString = apiBabyInfo.toJson() // Use toJson from ApiBabyInfo
             sharedPreferences.edit {
-                putString(babyInfoKey, babyInfoJsonString)
+                putString(babyInfoNameKey, babyInfo.name)
+                putLong(babyInfoDobKey, babyInfo.dateOfBirth)
+                putString(babyInfoThemeKey, babyInfo.theme)
                 apply()
             }
             Log.d("BabyRepository", "BabyInfo saved to Shared Preferences")
@@ -56,41 +58,20 @@ class BabyRepositoryImpl @Inject constructor(
     }
 
     // Function to read BabyInfo from Shared Preferences
-    override fun getBabyInfoFromPreferences(): BabyInfo? {
-        val babyInfoJsonString = sharedPreferences.getString(babyInfoKey, null)
-        return if (babyInfoJsonString != null) {
-            try {
-                val apiBabyInfo =
-                    ApiBabyInfo.fromJson(babyInfoJsonString) // Use fromJson from ApiBabyInfo
-                val domainBabyInfo = apiBabyInfo.toDomainModel() // Map data model to domain model
-                Log.d("BabyRepository", "DomainBabyInfo read from Shared Preferences")
-                domainBabyInfo
-            } catch (e: Exception) {
-                Log.e(
-                    "BabyRepository",
-                    "Error reading BabyInfo from Shared Preferences: ${e.message}"
-                )
-                null
-            }
-        } else {
-            null
+    override fun getBabyInfoFromPreferences(): Result<BabyInfo> {
+        try {
+            val name = sharedPreferences.getString(babyInfoNameKey, "")
+            val dob = sharedPreferences.getLong(babyInfoDobKey, 0)
+            val theme = sharedPreferences.getString(babyInfoThemeKey, "pelican")
+            if (name.isNullOrBlank() || dob == 0L || theme.isNullOrBlank()) {
+                return Result.Success(BabyInfo(name ?: "", dob, theme ?: "pelican"))
+            } else return Result.Error("No saved baby info found")
+        } catch (e: Exception) {
+            Log.e(
+                "BabyRepository",
+                "Error reading BabyInfo from Shared Preferences: ${e.message}"
+            )
+            return Result.Error(e.message ?: "Unknown error", e)
         }
     }
-}
-
-// Extension functions for mapping between domain and data models (can be in a separate file in data layer)
-fun ApiBabyInfo.toDomainModel(): BabyInfo {
-    return BabyInfo(
-        name = this.name,
-        dateOfBirth = this.dob,
-        theme = this.theme
-    )
-}
-
-fun BabyInfo.toApiModel(): ApiBabyInfo {
-    return ApiBabyInfo(
-        name = this.name,
-        dob = this.dateOfBirth,
-        theme = this.theme
-    )
 }

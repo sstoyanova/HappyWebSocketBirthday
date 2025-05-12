@@ -5,8 +5,8 @@ import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 
 
 // A data class to hold the UI state for the IpSetupScreen
-data class IpSetupScreenState( // Or IpSetupScreenState if that's the name you're using
-    val ipPort: String = "192.168.100.12:8080",
+data class IpSetupScreenState(
+    val ipPort: String = "",
     val validationResult: ValidationResult = ValidationResult(true),
     val isLoading: Boolean = false,
     val babyInfo: BabyInfo? = null, // Flag to indicate if baby info was received
