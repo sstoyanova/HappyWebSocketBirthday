@@ -63,8 +63,10 @@ class BabyRepositoryImpl @Inject constructor(
             val name = sharedPreferences.getString(babyInfoNameKey, "")
             val dob = sharedPreferences.getLong(babyInfoDobKey, 0)
             val theme = sharedPreferences.getString(babyInfoThemeKey, "pelican")
-            if (name.isNullOrBlank() || dob == 0L || theme.isNullOrBlank()) {
-                return Result.Success(BabyInfo(name ?: "", dob, theme ?: "pelican"))
+            if (!name.isNullOrBlank() && dob != 0L && !theme.isNullOrBlank()) {
+                val babyInfo = BabyInfo(name, dob, theme)
+                Log.d("BabyRepository", "BabyInfo read from Shared Preferences: $babyInfo")
+                return Result.Success(babyInfo)
             } else return Result.Error("No saved baby info found")
         } catch (e: Exception) {
             Log.e(

@@ -74,7 +74,7 @@ fun IpSetupScreen(
                 }
             },
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
+                keyboardType = KeyboardType.Uri,
                 imeAction = ImeAction.Done
             ),
             modifier = Modifier.padding(top = 32.dp, bottom = 32.dp)

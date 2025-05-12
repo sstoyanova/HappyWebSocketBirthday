@@ -24,7 +24,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.net.ConnectException
 import javax.inject.Inject
@@ -131,7 +130,7 @@ class WebSocketClient @Inject constructor(
                         Log.e("WebSocketClient", "Exception in receive loop", e)
                         // Handle exceptions during reception. This might or might not mean the
                         // entire session is invalid, depending on the exception.
-                        if (currentSession?.isActive == true) {
+                        if (currentSession.isActive == true) {
                             Log.d(
                                 "WebSocketClient",
                                 "Receive loop error while session still active."
@@ -319,10 +318,6 @@ class WebSocketClient @Inject constructor(
         @SerialName("dob") val dob: Long,
         @SerialName("theme") val theme: String
     ) {
-
-        fun toJson(): String {
-            return Json.encodeToString(this)
-        }
 
         fun toDomain(): BabyInfo {
             return BabyInfo(name,dob,theme)
