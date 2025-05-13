@@ -114,7 +114,7 @@ fun IpSetupScreen(
 // Original IpAddressSetupScreen that uses HiltViewModel
 @Composable
 fun IpSetupScreen(
-    onNavigateToBabyInfo: () -> Unit,
+    onNavigateToBabyInfo: (name: String, dateOfBirth: Long, theme: String) -> Unit,
     viewModel: IpSetupViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -128,10 +128,11 @@ fun IpSetupScreen(
 
     // Use LaunchedEffect to trigger navigation when babyInfoReceived is true
     LaunchedEffect(key1 = state.babyInfo) {
-        if (state.babyInfo != null) {
-            onNavigateToBabyInfo() // Trigger navigation
+        state.babyInfo?.let { babyInfo ->
+            onNavigateToBabyInfo(babyInfo.name, babyInfo.dateOfBirth, babyInfo.theme)
         }
     }
+
     IpSetupScreen(
         uiState = state,
         onIpPortChange = { newValue ->

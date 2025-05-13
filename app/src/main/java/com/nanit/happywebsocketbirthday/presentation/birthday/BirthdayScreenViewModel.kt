@@ -6,9 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.nanit.happywebsocketbirthday.R
 import com.nanit.happywebsocketbirthday.domain.model.AgeResult
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
-import com.nanit.happywebsocketbirthday.domain.model.Result
 import com.nanit.happywebsocketbirthday.domain.usecase.GetAgeDisplayInfoUseCase
-import com.nanit.happywebsocketbirthday.domain.usecase.GetBabyInfoFromPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +20,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BirthdayScreenViewModel @Inject constructor(
-    private val getBabyInfoFromPreferencesUseCase: GetBabyInfoFromPreferencesUseCase,
     private val getAgeDisplayInfoUseCase: GetAgeDisplayInfoUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(BirthdayScreenState())
@@ -48,47 +45,6 @@ class BirthdayScreenViewModel @Inject constructor(
             11 to R.drawable.icon_11,
             12 to R.drawable.icon_12
         )
-    }
-
-
-    init {
-        loadInitialBabyInfoFromPreferences()
-    }
-
-    // Function to load initial baby info from Shared Preferences
-    private fun loadInitialBabyInfoFromPreferences() {
-        viewModelScope.launch {
-            // Set loading state immediately
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
-            val loadedBabyInfoResult = getBabyInfoFromPreferencesUseCase()
-            _uiState.update {
-                when (loadedBabyInfoResult) {
-                    is Result.Success -> {
-                        val loadedBabyInfo = loadedBabyInfoResult.data
-                        it.copy(
-                            babyInfo = loadedBabyInfo,
-                            isLoading = false,
-                            errorMessage = null,
-                            ageDisplayInfo = calculateAndGetAgeDisplayInfo(loadedBabyInfo)
-                        )
-                    }
-
-                    is Result.Error -> {
-                        it.copy(
-                            isLoading = false,
-                            // Maybe a different error message if it's just not found initially
-                            errorMessage = loadedBabyInfoResult.message,
-                            ageDisplayInfo = calculateAndGetAgeDisplayInfo(null)
-                        )
-                    }
-
-                    else -> {
-                        it.copy(isLoading = true, errorMessage = null)
-                    }
-                }
-            }
-        }
     }
 
     // Function to map DomainBabyInfo (or null) to AgeDisplayInfo presentation model
@@ -133,5 +89,23 @@ class BirthdayScreenViewModel @Inject constructor(
     //returns @DrawableRes icon corresponding to the passed number
     private fun getIconDrawableId(number: Int): Int {
         return numberIconMap[number] ?: R.drawable.icon_0
+    }
+
+    fun initialize(name: String, dateOfBirth: Long, theme: String) {
+        _uiState.update {
+            it.copy(
+                babyInfo = BabyInfo(name, dateOfBirth, theme),
+                isLoading = false,
+                errorMessage = null,
+                //todo pass only the needed data(date of birth) here not the whole baby info object
+                ageDisplayInfo = calculateAndGetAgeDisplayInfo(
+                    domainBabyInfo = BabyInfo(
+                        name,
+                        dateOfBirth,
+                        theme
+                    )
+                )
+            )
+        }
     }
 }

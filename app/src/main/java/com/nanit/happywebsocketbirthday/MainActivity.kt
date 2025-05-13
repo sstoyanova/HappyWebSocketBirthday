@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.nanit.happywebsocketbirthday.presentation.birthday.BirthdayScreen
 import com.nanit.happywebsocketbirthday.presentation.ipsetup.IpSetupScreen
 import com.nanit.happywebsocketbirthday.ui.theme.HappyWebSocketBirthdayTheme
@@ -31,13 +32,22 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable<IpSetupScreen> {
                             IpSetupScreen(
-                                onNavigateToBabyInfo = {
-                                    navController.navigate(BirthdayScreen)
-                                }
-                            )
+                                onNavigateToBabyInfo = { name, dateOfBirth, theme ->
+                                    navController.navigate(
+                                        BirthdayScreenRoute(
+                                            name = name,
+                                            dateOfBirth = dateOfBirth,
+                                            theme = theme
+                                        )
+                                    )
+                                })
                         }
-                        composable<BirthdayScreen>{
-                            BirthdayScreen()
+                        composable<BirthdayScreenRoute> {
+                            val arguments = it.toRoute<BirthdayScreenRoute>()
+                            val name = arguments.name
+                            val dateOfBirth = arguments.dateOfBirth
+                            val theme = arguments.theme
+                            BirthdayScreen(name, dateOfBirth, theme)
                         }
                     }
                 }
@@ -50,4 +60,8 @@ class MainActivity : ComponentActivity() {
 object IpSetupScreen
 
 @Serializable
-object BirthdayScreen
+data class BirthdayScreenRoute(
+    val name: String,
+    val dateOfBirth: Long,
+    val theme: String
+)

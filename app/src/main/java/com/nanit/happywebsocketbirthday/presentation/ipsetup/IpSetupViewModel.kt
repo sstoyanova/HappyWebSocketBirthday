@@ -7,7 +7,6 @@ import com.nanit.happywebsocketbirthday.ValidationResult
 import com.nanit.happywebsocketbirthday.data.network.WebSocketClient
 import com.nanit.happywebsocketbirthday.domain.model.Result
 import com.nanit.happywebsocketbirthday.domain.usecase.ConnectToWSUseCase
-import com.nanit.happywebsocketbirthday.domain.usecase.SaveBabyInfoToPreferencesUseCase
 import com.nanit.happywebsocketbirthday.domain.usecase.SendMessageUseCase
 import com.nanit.happywebsocketbirthday.isValidIpPortFormat
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +24,6 @@ import javax.inject.Inject
 class IpSetupViewModel @Inject constructor(
     private val connectToWSUseCase: ConnectToWSUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
-    private val saveBabyInfoToPreferencesUseCase: SaveBabyInfoToPreferencesUseCase,
     private val webSocketClient: WebSocketClient
 ) : ViewModel() {
 
@@ -145,7 +143,6 @@ class IpSetupViewModel @Inject constructor(
                                     "IpSetupViewModel",
                                     "Successfully parsed and received ApiBabyInfo in collector."
                                 )
-                                saveBabyInfoToPreferencesUseCase(babyInfo)
                                 _state.update {
                                     it.copy(
                                         isLoading = false, // Stop loading when info is received
@@ -315,6 +312,8 @@ class IpSetupViewModel @Inject constructor(
     fun resetNavigationTriggerState() {
         _state.update { currentState ->
             currentState.copy(
+                messageStatusText = "Send message",
+                babyInfoStatusText = "Waiting for new baby info",
                 babyInfo = null
             )
         }

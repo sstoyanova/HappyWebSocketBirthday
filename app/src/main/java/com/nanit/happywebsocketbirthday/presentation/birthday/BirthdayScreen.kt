@@ -98,18 +98,6 @@ fun BirthdayScreen(
     val cameraIconDrawableId = currentTheme.cameraIconDrawableId
     val backgroundColor = currentTheme.backgroundColor
     val darkColor = currentTheme.darkColor
-
-    val babyNameLabel = stringResource(R.string.today_baby_name_is_label, uiState.babyInfo.name)
-    val ageLabelText = pluralStringResource(
-        id = uiState.ageDisplayInfo.ageLabelPluralResId, // Use the plural resource ID
-        uiState.ageDisplayInfo.age // Directly use the age from AgeDisplayInfo as the quantity
-    )
-
-    val bentonSansFamily = FontFamily(
-        Font(R.font.benton_sans_regular, FontWeight.Normal),
-        Font(R.font.benton_sans_bold, FontWeight.Bold)
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -129,51 +117,7 @@ fun BirthdayScreen(
                     .padding(start = 50.dp, end = 50.dp)
                     .weight(1f)
             ) {
-                Text(
-                    babyNameLabel.uppercase(),
-                    color = DarkBlueTextColor,
-                    modifier = Modifier
-                        .padding(top = 20.dp),
-                    textAlign = TextAlign.Center,
-                    fontSize = 21.sp,
-                    fontFamily = bentonSansFamily,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
-
-                    Image(
-                        painter = painterResource(id = R.drawable.left_swirls),
-                        contentDescription = stringResource(R.string.decoration),
-                        modifier = Modifier
-                            .width(50.dp)
-                            .align(Alignment.CenterVertically)
-                    )
-                    Image(
-                        painter = painterResource(id = uiState.ageDisplayInfo.numberIconDrawableId),
-                        contentDescription = stringResource(R.string.age_icon),
-                        modifier = Modifier
-                            .height(88.dp)
-                            .padding(start = 22.dp, end = 22.dp)
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.right_swirls),
-                        contentDescription = stringResource(R.string.decoration),
-                        modifier = Modifier
-                            .width(50.dp)
-                            .align(Alignment.CenterVertically)
-                    )
-                }
-                Text(
-                    ageLabelText,
-                    fontSize = 18.sp,
-                    color = DarkBlueTextColor,
-                    fontFamily = bentonSansFamily,
-                    fontWeight = FontWeight.Bold
-                )
+                AgeDisplay(uiState)
             }
             Box(
                 contentAlignment = Alignment.Center,
@@ -246,11 +190,83 @@ fun BirthdayScreen(
     }
 }
 
+@Composable
+fun AgeDisplay(uiState: BirthdayScreenState) {
+    if (uiState.babyInfo == null || uiState.ageDisplayInfo == null) {
+        return
+    }
+    val babyNameLabel = stringResource(R.string.today_baby_name_is_label, uiState.babyInfo.name)
+    val ageLabelText = pluralStringResource(
+        id = uiState.ageDisplayInfo.ageLabelPluralResId, // Use the plural resource ID
+        uiState.ageDisplayInfo.age // Directly use the age from AgeDisplayInfo as the quantity
+    )
+
+    val bentonSansFamily = FontFamily(
+        Font(R.font.benton_sans_regular, FontWeight.Normal),
+        Font(R.font.benton_sans_bold, FontWeight.Bold)
+    )
+
+    Text(
+        babyNameLabel.uppercase(),
+        color = DarkBlueTextColor,
+        modifier = Modifier
+            .padding(top = 20.dp),
+        textAlign = TextAlign.Center,
+        fontSize = 21.sp,
+        fontFamily = bentonSansFamily,
+        fontWeight = FontWeight.Bold
+    )
+
+    Row(
+        modifier = Modifier
+            .padding(16.dp)
+    ) {
+
+        Image(
+            painter = painterResource(id = R.drawable.left_swirls),
+            contentDescription = stringResource(R.string.decoration),
+            modifier = Modifier
+                .width(50.dp)
+                .align(Alignment.CenterVertically)
+        )
+        Image(
+            painter = painterResource(id = uiState.ageDisplayInfo.numberIconDrawableId),
+            contentDescription = stringResource(R.string.age_icon),
+            modifier = Modifier
+                .height(88.dp)
+                .padding(start = 22.dp, end = 22.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.right_swirls),
+            contentDescription = stringResource(R.string.decoration),
+            modifier = Modifier
+                .width(50.dp)
+                .align(Alignment.CenterVertically)
+        )
+    }
+    Text(
+        ageLabelText,
+        fontSize = 18.sp,
+        color = DarkBlueTextColor,
+        fontFamily = bentonSansFamily,
+        fontWeight = FontWeight.Bold
+    )
+}
+
 // Original BirthdayScreen that uses HiltViewModel
 @Composable
 fun BirthdayScreen(
+    name: String,
+    dateOfBirth: Long,
+    theme: String,
     viewModel: BirthdayScreenViewModel = hiltViewModel()
 ) {
+
+    // Use LaunchedEffect to call initialize when the ViewModel is available
+    LaunchedEffect(viewModel) {
+        viewModel.initialize(name, dateOfBirth, theme)
+    }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
