@@ -22,6 +22,17 @@ import com.nanit.happywebsocketbirthday.R
 import com.nanit.happywebsocketbirthday.ui.theme.DarkBlueTextColor
 
 
+/**
+ * A composable function that displays the baby's name and age information.
+ *
+ * This function renders the baby's name, an age icon, and a text label for the age,
+ * formatted according to the provided [AgeDisplayInfo].
+ *
+ * @param name The name of the baby to display.
+ * @param ageDisplayInfo An [AgeDisplayInfo] object containing details about how to display the age,
+ *   including the plural resource ID for the age label, the age value itself,
+ *   and the drawable resource ID for the age icon.
+ */
 @Composable
 fun AgeNameDisplay(name: String, ageDisplayInfo: AgeDisplayInfo) {
     val babyNameLabel = stringResource(R.string.today_baby_name_is_label, name)

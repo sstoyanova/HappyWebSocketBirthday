@@ -1,6 +1,8 @@
 package com.nanit.happywebsocketbirthday.presentation.birthday
 
 import android.net.Uri
+import androidx.annotation.DrawableRes
+import androidx.annotation.PluralsRes
 import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 
 // A data class to hold the UI state for the BabyInfoScreen
@@ -10,4 +12,12 @@ data class BirthdayScreenState(
     val errorMessage: String? = null,
     val ageDisplayInfo: AgeDisplayInfo? = null,
     val babyPictureUri: Uri? = null
+
+
+)
+
+data class AgeDisplayInfo(
+    @DrawableRes val numberIconDrawableId: Int,
+    @PluralsRes val ageLabelPluralResId: Int,
+    val age: Int
 )
