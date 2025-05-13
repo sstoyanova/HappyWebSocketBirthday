@@ -14,7 +14,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,15 +42,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -64,7 +57,6 @@ import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 import com.nanit.happywebsocketbirthday.presentation.utils.FileProviderUtils.createTempImageFile
 import com.nanit.happywebsocketbirthday.presentation.utils.FileProviderUtils.getUriForFile
 import com.nanit.happywebsocketbirthday.ui.theme.AppTheme
-import com.nanit.happywebsocketbirthday.ui.theme.DarkBlueTextColor
 import kotlin.math.sqrt
 
 @Composable
@@ -117,7 +109,7 @@ fun BirthdayScreen(
                     .padding(start = 50.dp, end = 50.dp)
                     .weight(1f)
             ) {
-                AgeDisplay(uiState)
+                AgeNameDisplay(uiState.babyInfo.name, uiState.ageDisplayInfo)
             }
             Box(
                 contentAlignment = Alignment.Center,
@@ -188,69 +180,6 @@ fun BirthdayScreen(
                 .align(Alignment.BottomCenter)
         )
     }
-}
-
-@Composable
-fun AgeDisplay(uiState: BirthdayScreenState) {
-    if (uiState.babyInfo == null || uiState.ageDisplayInfo == null) {
-        return
-    }
-    val babyNameLabel = stringResource(R.string.today_baby_name_is_label, uiState.babyInfo.name)
-    val ageLabelText = pluralStringResource(
-        id = uiState.ageDisplayInfo.ageLabelPluralResId, // Use the plural resource ID
-        uiState.ageDisplayInfo.age // Directly use the age from AgeDisplayInfo as the quantity
-    )
-
-    val bentonSansFamily = FontFamily(
-        Font(R.font.benton_sans_regular, FontWeight.Normal),
-        Font(R.font.benton_sans_bold, FontWeight.Bold)
-    )
-
-    Text(
-        babyNameLabel.uppercase(),
-        color = DarkBlueTextColor,
-        modifier = Modifier
-            .padding(top = 20.dp),
-        textAlign = TextAlign.Center,
-        fontSize = 21.sp,
-        fontFamily = bentonSansFamily,
-        fontWeight = FontWeight.Bold
-    )
-
-    Row(
-        modifier = Modifier
-            .padding(16.dp)
-    ) {
-
-        Image(
-            painter = painterResource(id = R.drawable.left_swirls),
-            contentDescription = stringResource(R.string.decoration),
-            modifier = Modifier
-                .width(50.dp)
-                .align(Alignment.CenterVertically)
-        )
-        Image(
-            painter = painterResource(id = uiState.ageDisplayInfo.numberIconDrawableId),
-            contentDescription = stringResource(R.string.age_icon),
-            modifier = Modifier
-                .height(88.dp)
-                .padding(start = 22.dp, end = 22.dp)
-        )
-        Image(
-            painter = painterResource(id = R.drawable.right_swirls),
-            contentDescription = stringResource(R.string.decoration),
-            modifier = Modifier
-                .width(50.dp)
-                .align(Alignment.CenterVertically)
-        )
-    }
-    Text(
-        ageLabelText,
-        fontSize = 18.sp,
-        color = DarkBlueTextColor,
-        fontFamily = bentonSansFamily,
-        fontWeight = FontWeight.Bold
-    )
 }
 
 // Original BirthdayScreen that uses HiltViewModel
