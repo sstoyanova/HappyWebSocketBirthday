@@ -48,8 +48,8 @@ class BirthdayScreenViewModel @Inject constructor(
     }
 
     // Function to map DomainBabyInfo (or null) to AgeDisplayInfo presentation model
-    private fun calculateAndGetAgeDisplayInfo(domainBabyInfo: BabyInfo?): AgeDisplayInfo {
-        val ageResult = getAgeDisplayInfoUseCase(domainBabyInfo)
+    private fun calculateAndGetAgeDisplayInfo(dateOfBirth: Long?): AgeDisplayInfo {
+        val ageResult = getAgeDisplayInfoUseCase(dateOfBirth)
 
         // Map the AgeResult to the presentation-level AgeDisplayInfo
         return when (ageResult) {
@@ -97,13 +97,8 @@ class BirthdayScreenViewModel @Inject constructor(
                 babyInfo = BabyInfo(name, dateOfBirth, theme),
                 isLoading = false,
                 errorMessage = null,
-                //todo pass only the needed data(date of birth) here not the whole baby info object
                 ageDisplayInfo = calculateAndGetAgeDisplayInfo(
-                    domainBabyInfo = BabyInfo(
-                        name,
-                        dateOfBirth,
-                        theme
-                    )
+                    dateOfBirth
                 )
             )
         }

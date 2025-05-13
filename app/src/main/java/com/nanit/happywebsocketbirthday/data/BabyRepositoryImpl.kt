@@ -13,7 +13,7 @@ import javax.inject.Singleton
 class BabyRepositoryImpl @Inject constructor(
     private val webSocketClient: WebSocketClient
 ) : BabyRepository {
-    
+
     // Function to fetch BabyInfo directly from the WebSocket
     override suspend fun sendMessageToWS(message: String): Result<Unit> { // Return Result<Unit>
         return webSocketClient.sendMessage(message)

@@ -1,7 +1,6 @@
 package com.nanit.happywebsocketbirthday.domain.usecase
 
 import com.nanit.happywebsocketbirthday.domain.model.AgeResult
-import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -10,12 +9,12 @@ import kotlinx.datetime.toLocalDateTime
 import javax.inject.Inject
 
 class GetAgeDisplayInfoUseCase @Inject constructor() {
-    operator fun invoke(babyInfo: BabyInfo?): AgeResult {
-        val wholeMonthsAge = babyInfo?.let {
+    operator fun invoke(dateOfBirth: Long?): AgeResult {
+        val wholeMonthsAge = dateOfBirth?.let {
             val currentTime = Clock.System.now() // Get the current time as Instant
             val timeZone = TimeZone.currentSystemDefault() // Get the current system time zone
             calculateWholeMonthsOfAge(
-                it.dateOfBirth,
+                it,
                 currentTime,
                 timeZone
             )
