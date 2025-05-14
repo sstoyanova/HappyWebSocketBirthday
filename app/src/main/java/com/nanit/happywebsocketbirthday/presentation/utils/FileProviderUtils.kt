@@ -8,6 +8,11 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.io.IOException
 
+/**
+ * Utility object for handling file operations related to [FileProvider].
+ * This object provides helper functions for creating temporary files
+ * and obtaining a content URI for a given file using [FileProvider].
+ */
 object FileProviderUtils {
     // Function to create a temporary file for the camera output
     fun createTempImageFile(context: Context): File? {
@@ -31,7 +36,7 @@ object FileProviderUtils {
         return try {
             FileProvider.getUriForFile(
                 context,
-                "${context.packageName}.provider", // Make sure this matches the authority in your Manifest
+                "${context.packageName}.provider",
                 file
             )
         } catch (e: IllegalArgumentException) {

@@ -18,7 +18,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,7 +38,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.nanit.happywebsocketbirthday.R
-import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 import com.nanit.happywebsocketbirthday.ui.theme.AppTheme
 import kotlin.math.sqrt
 
@@ -58,15 +56,13 @@ fun BirthdayScreen(
     uiState: BirthdayScreenState,
     onCameraIconClick: () -> Unit // Callback for the camera icon click
 ) {
-    // Ensure babyInfo and ageDisplayInfo are not null before accessing their properties
-    // You might want to show a loading or error state if they are null
-    if (uiState.babyInfo == null || uiState.ageDisplayInfo == null) {
-        // Display a loading indicator or an error message if data is not ready
-        ShowLoadingOrError(uiState)
+    if (uiState.isLoading) {
+        // Display a loading indicator if data is not ready
+        ShowLoading(uiState)
         return // Stop rendering if data is not ready
     }
 
-    val currentTheme = AppTheme.fromThemeName(uiState.babyInfo.theme)
+    val currentTheme = AppTheme.fromThemeName(uiState.theme)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -85,7 +81,7 @@ fun BirthdayScreen(
                     .padding(start = 50.dp, end = 50.dp)
                     .weight(1f)
             ) {
-                AgeNameDisplay(uiState.babyInfo.name, uiState.ageDisplayInfo)
+                AgeNameDisplay(uiState.name, uiState.ageDisplayInfo)
             }
 
             Box(
@@ -105,7 +101,7 @@ fun BirthdayScreen(
                 Image(
                     // Use rememberAsyncImagePainter to load the image from Uri or Drawable ID
                     painter = rememberAsyncImagePainter(
-                        model = uiState.babyPictureUri
+                        model = uiState.pictureUri
                             ?: currentTheme.faceIconDrawableId, // Use chosen Uri if available, otherwise use the theme face drawable ID
                     ),
                     contentDescription = stringResource(R.string.baby_image),
@@ -158,22 +154,6 @@ fun BirthdayScreen(
     }
 }
 
-@Composable
-private fun ShowLoadingOrError(uiState: BirthdayScreenState) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        if (uiState.isLoading) {
-            CircularProgressIndicator() // Show loading
-        } else if (uiState.errorMessage != null) {
-            Text(uiState.errorMessage) // Show error
-        } else {
-            Text(stringResource(R.string.loading_baby_info)) // Default loading text
-        }
-    }
-}
-
 // Original BirthdayScreen that uses HiltViewModel
 @Composable
 fun BirthdayScreen(
@@ -220,22 +200,27 @@ fun BirthdayScreen(
 @Preview(showBackground = true)
 @Composable
 fun BirthdayScreenPreview() {
-    val sampleBabyInfo = BabyInfo(
-        name = "Christiano Ronaldo",
-        dateOfBirth = 1640995200000, // Example DOB (Jan 1, 2022)
-        theme = "pelican"
-    )
-
     val sampleUiState = BirthdayScreenState(
-        babyInfo = sampleBabyInfo,
-        isLoading = false,
-        errorMessage = null,
+        name = "Christiano Ronaldo",
+        theme = "pelican",
         ageDisplayInfo = AgeDisplayInfo(R.drawable.icon_10, R.plurals.months_old, 10)
     )
 
     MaterialTheme {
         Surface {
             BirthdayScreen(uiState = sampleUiState, onCameraIconClick = {})
+        }
+    }
+}
+
+@Composable
+private fun ShowLoading(uiState: BirthdayScreenState) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        if (uiState.isLoading) {
+            CircularProgressIndicator() // Show loading
         }
     }
 }

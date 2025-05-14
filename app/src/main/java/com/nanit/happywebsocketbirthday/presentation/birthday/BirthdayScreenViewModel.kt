@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nanit.happywebsocketbirthday.R
 import com.nanit.happywebsocketbirthday.domain.model.AgeResult
-import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 import com.nanit.happywebsocketbirthday.domain.usecase.GetAgeDisplayInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -82,7 +81,7 @@ class BirthdayScreenViewModel @Inject constructor(
 
     fun onPictureSelected(uri: Uri?) { // Renamed parameter for clarity
         _uiState.update { currentState ->
-            currentState.copy(babyPictureUri = uri)
+            currentState.copy(pictureUri = uri)
         }
     }
 
@@ -94,12 +93,12 @@ class BirthdayScreenViewModel @Inject constructor(
     fun initialize(name: String, dateOfBirth: Long, theme: String) {
         _uiState.update {
             it.copy(
-                babyInfo = BabyInfo(name, dateOfBirth, theme),
-                isLoading = false,
-                errorMessage = null,
+                name = name,
+                theme = theme,
                 ageDisplayInfo = calculateAndGetAgeDisplayInfo(
                     dateOfBirth
-                )
+                ),
+                isLoading = false
             )
         }
     }
