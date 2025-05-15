@@ -9,9 +9,9 @@ data class IpSetupScreenState(
     val ipPort: String = "",
     val validationResult: ValidationResult = ValidationResult(true),
     val isLoading: Boolean = false,
-    val babyInfo: BabyInfo? = null, // Flag to indicate if baby info was received
     val isConnected: Boolean = false, // Flag to indicate if the client is connected to the WS
     val connectionStatusText: String = "No attempt to connect has been made", // Default initial value
     val messageStatusText: String = "Send message", // Default initial value
-    val babyInfoStatusText: String = "No baby info received yet" // Default initial value
+    val babyInfoStatusText: String = "No baby info received yet", // Default initial value
+    val navigateToBabyInfoEvent: BabyInfo? = null // Event to trigger navigation
 )

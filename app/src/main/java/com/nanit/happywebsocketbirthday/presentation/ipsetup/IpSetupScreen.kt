@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -118,18 +117,12 @@ fun IpSetupScreen(
     viewModel: IpSetupViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    // Use DisposableEffect to manage the ViewModel's state based on composable lifecycle
-    DisposableEffect(Unit) {
-        onDispose {
-            // When the composable leaves the composition (e.g., navigating away)
-            viewModel.resetNavigationTriggerState() // Reset the state
-        }
-    }
 
     // Use LaunchedEffect to trigger navigation when babyInfoReceived is true
-    LaunchedEffect(key1 = state.babyInfo) {
-        state.babyInfo?.let { babyInfo ->
+    LaunchedEffect(key1 = state.navigateToBabyInfoEvent) {
+        state.navigateToBabyInfoEvent?.let { babyInfo ->
             onNavigateToBabyInfo(babyInfo.name, babyInfo.dateOfBirth, babyInfo.theme)
+            viewModel.onBabyInfoNavigationHandled()
         }
     }
 
@@ -149,11 +142,7 @@ fun IpSetupScreen(
     )
 }
 
-@Preview(
-    showBackground = true,
-//    widthDp = 361,
-//    heightDp = 592
-) // showBackground is helpful to see the composable against a background
+@Preview(showBackground = true,)
 @Composable
 fun IpAddressSetupScreenPreview() {
     val sampleUiState = IpSetupScreenState(

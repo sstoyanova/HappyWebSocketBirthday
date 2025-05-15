@@ -259,8 +259,8 @@ class WebSocketClient @Inject constructor(
         }
     }
 
-    // Flow to collect and parse incoming messages specifically as BabyInfo
-    fun receiveBabyInfo(): Flow<Result<BabyInfo?>> {
+    // Flow to collect single BabyInfo
+    fun receiveBabyInfo(): Flow<Result<BabyInfo>> {
         // Collect from the central incomingMessages flow and map/filter
         return incomingMessages
             .map { result -> // Map the Result<String>
@@ -283,7 +283,6 @@ class WebSocketClient @Inject constructor(
                     is Result.Loading -> Result.Loading
                 }
             }
-        // .take(1) // Uncomment this if you want to stop after the first valid BabyInfo is received
     }
 
     // Function to disconnect the WebSocket
