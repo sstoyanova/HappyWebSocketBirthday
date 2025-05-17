@@ -16,6 +16,8 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.Json
 import javax.inject.Singleton
 
@@ -28,7 +30,7 @@ object AppModule {
     fun provideHttpClient(): HttpClient {
         return HttpClient(CIO) {
             install(Logging) {
-                logger =  Logger.ANDROID
+                logger = Logger.ANDROID
                 level = LogLevel.ALL // Set the desired log level
             }
             install(WebSockets)
@@ -49,6 +51,20 @@ object AppModule {
     @Singleton
     fun provideWebSocketClient(client: HttpClient): WebSocketClient {
         return WebSocketClient(client)
+    }
+
+    // Provide Clock for age calculation
+    @Provides
+    @Singleton
+    fun provideClock(): Clock {
+        return Clock.System
+    }
+
+    // Provide TimeZone for age calculation
+    @Provides
+    @Singleton
+    fun provideTimeZone(): TimeZone {
+        return TimeZone.currentSystemDefault()
     }
 
 

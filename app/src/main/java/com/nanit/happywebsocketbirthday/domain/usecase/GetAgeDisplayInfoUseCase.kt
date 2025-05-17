@@ -8,11 +8,13 @@ import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import javax.inject.Inject
 
-class GetAgeDisplayInfoUseCase @Inject constructor() {
+class GetAgeDisplayInfoUseCase @Inject constructor(
+    private val clock: Clock,
+    private val timeZone: TimeZone
+) {
     operator fun invoke(dateOfBirth: Long?): AgeResult {
         val wholeMonthsAge = dateOfBirth?.let {
-            val currentTime = Clock.System.now() // Get the current time as Instant
-            val timeZone = TimeZone.currentSystemDefault() // Get the current system time zone
+            val currentTime = clock.now() // Get the current time as Instant
             calculateWholeMonthsOfAge(
                 it,
                 currentTime,
@@ -22,7 +24,7 @@ class GetAgeDisplayInfoUseCase @Inject constructor() {
 
         return when {
             wholeMonthsAge == null -> AgeResult.Default
-            wholeMonthsAge <= 12 -> AgeResult.Months(wholeMonthsAge)
+            wholeMonthsAge < 12 -> AgeResult.Months(wholeMonthsAge)
             else -> {
                 val calculatedYears = wholeMonthsAge / 12
                 AgeResult.Years(calculatedYears)
