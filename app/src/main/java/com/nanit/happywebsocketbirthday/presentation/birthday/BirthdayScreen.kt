@@ -203,7 +203,7 @@ fun BirthdayScreenPreview() {
     val sampleUiState = BirthdayScreenState(
         name = "Christiano Ronaldo",
         theme = "pelican",
-        ageDisplayInfo = AgeDisplayInfo(R.drawable.icon_10, R.plurals.months_old, 10)
+        ageDisplayInfo = AgeDisplayInfo(R.plurals.months_old, 10)
     )
 
     MaterialTheme {

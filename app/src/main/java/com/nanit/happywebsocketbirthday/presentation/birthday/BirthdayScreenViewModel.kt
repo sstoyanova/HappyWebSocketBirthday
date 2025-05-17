@@ -28,44 +28,22 @@ class BirthdayScreenViewModel @Inject constructor(
     private val _showPictureSourceDialog = MutableSharedFlow<Unit>()
     val showPictureSourceDialog = _showPictureSourceDialog.asSharedFlow()
 
-    private val numberIconMap: Map<Int, Int> by lazy {
-        mapOf(
-            0 to R.drawable.icon_0,
-            1 to R.drawable.icon_1,
-            2 to R.drawable.icon_2,
-            3 to R.drawable.icon_3,
-            4 to R.drawable.icon_4,
-            5 to R.drawable.icon_5,
-            6 to R.drawable.icon_6,
-            7 to R.drawable.icon_7,
-            8 to R.drawable.icon_8,
-            9 to R.drawable.icon_9,
-            10 to R.drawable.icon_10,
-            11 to R.drawable.icon_11,
-            12 to R.drawable.icon_12
-        )
-    }
 
     // Function to map DomainBabyInfo (or null) to AgeDisplayInfo presentation model
     private fun calculateAndGetAgeDisplayInfo(dateOfBirth: Long?): AgeDisplayInfo {
-        val ageResult = getAgeDisplayInfoUseCase(dateOfBirth)
-
         // Map the AgeResult to the presentation-level AgeDisplayInfo
-        return when (ageResult) {
+        return when (val ageResult = getAgeDisplayInfoUseCase(dateOfBirth)) {
             is AgeResult.Months -> AgeDisplayInfo(
-                numberIconDrawableId = getIconDrawableId(ageResult.months), // Mapping to resources
                 ageLabelPluralResId = R.plurals.months_old, // Using presentation layer resources
                 age = ageResult.months
             )
 
             is AgeResult.Years -> AgeDisplayInfo(
-                numberIconDrawableId = getIconDrawableId(ageResult.years), // Mapping to resources
                 ageLabelPluralResId = R.plurals.years_old, // Using presentation layer resources
                 age = ageResult.years
             )
 
             AgeResult.Default -> AgeDisplayInfo(
-                numberIconDrawableId = R.drawable.icon_0, // Using presentation layer resources
                 ageLabelPluralResId = R.plurals.months_old, // Using presentation layer resources
                 age = 0
             )
@@ -85,10 +63,6 @@ class BirthdayScreenViewModel @Inject constructor(
         }
     }
 
-    //returns @DrawableRes icon corresponding to the passed number
-    private fun getIconDrawableId(number: Int): Int {
-        return numberIconMap[number] ?: R.drawable.icon_0
-    }
 
     fun initialize(name: String, dateOfBirth: Long, theme: String) {
         _uiState.update {
