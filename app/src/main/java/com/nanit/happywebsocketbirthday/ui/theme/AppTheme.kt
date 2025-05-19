@@ -23,7 +23,7 @@ enum class AppTheme(
     ),
     FOX(
         themeName = "fox",
-        backgroundDrawableId = R.drawable.android_bg_fox,
+        backgroundDrawableId = R.drawable.bg_android_fox,
         faceIconDrawableId = R.drawable.yellow_face,
         cameraIconDrawableId = R.drawable.ic_yellow_camera,
         backgroundColor = FoxOrange,
