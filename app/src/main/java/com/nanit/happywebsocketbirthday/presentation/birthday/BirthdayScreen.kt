@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -95,9 +98,12 @@ fun BirthdayScreen(
                     )
                     .align(Alignment.CenterHorizontally)
             ) {
-                val circleSize = 200
-                val cameraIconSize = 56
-                // Display the baby picture
+                val cameraIconSize = 42.dp // Define camera icon size as Dp
+
+                // State to hold the measured size of the image in Dp
+                var imageWidthDp by remember { mutableStateOf(0.dp) }
+                val density = LocalDensity.current
+
                 Image(
                     // Use rememberAsyncImagePainter to load the image from Uri or Drawable ID
                     painter = rememberAsyncImagePainter(
@@ -106,27 +112,36 @@ fun BirthdayScreen(
                     ),
                     contentDescription = stringResource(R.string.baby_image),
                     modifier = Modifier
-                        .size(circleSize.dp) // Apply the defined size
+                        .aspectRatio(1f) // 1f means width:height ratio is 1:1 (a square)
+                        .onSizeChanged { intSize ->
+                            // Convert the IntSize (pixels) to Dp
+                            imageWidthDp = with(density) { intSize.width.toDp() }
+                        }
                         .clip(CircleShape) // Clip to a circle shape
                         .border( // Add the border modifier after clipping
-                            width = 6.dp, // Specify the border width (adjust as needed)
-                            color = currentTheme.darkColor, // Specify the border color (adjust as needed)
+                            width = 8.dp, // Specify the border width
+                            color = currentTheme.darkColor, // Specify the border color
                             shape = CircleShape // Apply the border in a circular shape
                         ),
                     contentScale = ContentScale.Crop // Crop the image to fill the circle
                 )
 
-                val offset = (circleSize * sqrt(2.0)) / 4 // Calculate offset based on Dp value
-                IconButton(
-                    onClick = { onCameraIconClick() },
-                    modifier = Modifier
-                        .size(cameraIconSize.dp) // Apply the defined size
-                        .offset(offset.dp, -offset.dp) // Apply the calculated offset as Dp
-                ) {
-                    Image(
-                        painter = painterResource(id = currentTheme.cameraIconDrawableId),
-                        contentDescription = stringResource(R.string.choose_or_take_photo_icon),
-                    )
+                // The diameter of the circle
+                val circleDiameter = (imageWidthDp.value)
+                if (circleDiameter > 0) { // Ensure image has been measured
+                    val offset = (circleDiameter * sqrt(2.0)) / 4 // Calculate offset based on Dp value
+
+                    IconButton(
+                        onClick = { onCameraIconClick() },
+                        modifier = Modifier
+                            .size(cameraIconSize)
+                            .offset(x = offset.dp, y = -offset.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = currentTheme.cameraIconDrawableId),
+                            contentDescription = stringResource(R.string.choose_or_take_photo_icon),
+                        )
+                    }
                 }
             }
         }
