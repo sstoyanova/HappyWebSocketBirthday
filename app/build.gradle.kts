@@ -46,6 +46,7 @@ android {
 dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+    implementation(libs.slf4j.slf4j.simple)
     // Ktor Core
     implementation(libs.ktor.client.core) // Use the latest version
     // Ktor Content Negotiation (for JSON)
