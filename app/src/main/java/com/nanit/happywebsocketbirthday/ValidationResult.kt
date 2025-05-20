@@ -1,7 +1,12 @@
 package com.nanit.happywebsocketbirthday
 
+import androidx.compose.runtime.Immutable
 import java.util.regex.Pattern
 
+// Pre-compile the pattern once when the file is loaded
+private val COMPILED_IP_PATTERN: Pattern = Pattern.compile("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)(\\.(?!$)|$)){4}$")
+
+@Immutable
 data class ValidationResult(val isValid: Boolean, val errorMessage: String = "")
 
 fun isValidIpPortFormat(input: String): ValidationResult {
@@ -29,8 +34,7 @@ fun isValidIpPortFormat(input: String): ValidationResult {
 }
 
 fun isValidIpAddress(ip: String): Boolean {
-    val ipPattern = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)(\\.(?!$)|$)){4}$"
-    return Pattern.compile(ipPattern).matcher(ip).matches()
+    return COMPILED_IP_PATTERN.matcher(ip).matches()
 }
 
 fun isValidPort(port: String): Boolean {
