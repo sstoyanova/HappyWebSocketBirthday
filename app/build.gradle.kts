@@ -48,7 +48,8 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     implementation(libs.slf4j.slf4j.simple)
     // Ktor Core
-    implementation(libs.ktor.client.core) // Use the latest version
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.network.jvm)
     // Ktor Content Negotiation (for JSON)
     implementation(libs.ktor.client.content.negotiation)
     // Ktor JSON (Gson or kotlinx.serialization)

@@ -8,11 +8,12 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 kotlinxDatetime = "0.5.0"
-ktorClientCio = "2.3.3"
+ktorClientCio = "2.3.7"
 ktorClientContentNegotiation = "2.3.7"
 ktorClientCore = "2.3.7"
-ktorClientLogging = "2.3.3"
-ktorClientWebsockets = "2.3.3"
+ktorClientLogging = "2.3.7"
+ktorClientWebsockets = "2.3.7"
+ktorNetworkJvm = "2.3.7"
 ktorSerializationKotlinxJson = "2.3.7"
 lifecycleRuntimeKtx = "2.9.0"
 activityCompose = "1.10.1"
@@ -46,6 +47,7 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorClientLogging" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktorClientWebsockets" }
+ktor-network-jvm = { module = "io.ktor:ktor-network-jvm", version.ref = "ktorNetworkJvm" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
