@@ -6,7 +6,6 @@ import com.nanit.happywebsocketbirthday.domain.model.BabyInfo
 import com.nanit.happywebsocketbirthday.domain.model.Result
 import com.nanit.happywebsocketbirthday.domain.repository.BabyRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,37 +19,37 @@ class BabyRepositoryImpl @Inject constructor(
         return webSocketClient.sendMessage(message)
     }
 
-    // Function to fetch BabyInfo directly from the WebSocket
-    override suspend fun connectToWS(ipAddress: String): Flow<Result<WebSocketClient.ConnectionState>> =
-        flow {
-            try {
-                // Call the suspend functions within the coroutine
-                webSocketClient.connect(ipAddress)
-                webSocketClient.connectionState.collect { state ->
-                    emit(Result.Success(state))
-                }
-            } catch (e: Exception) {
-                Log.e("BabyRepository", "Error during WebSocket connection or sending message", e)
-                // Handle the error appropriately, perhaps by emitting an error state
-                // through a separate Flow or channel if needed.
-                emit(Result.Error(e.message ?: "Unknown error", e))
-            }
-        }
 
-    override suspend fun disconnectFromWS(): Result<String> {
-        try {
-            // Call the suspend functions within the coroutine
-            webSocketClient.disconnect()
-            return (Result.Success("Disconnected"))
+    // Function to initiate the WebSocket connection attempt
+    override suspend fun connectToWS(ipAddress: String): Result<Unit> {
+        return try {
+            // Call the suspend function to initiate connection
+            webSocketClient.connect(ipAddress) // This function should handle its own internal connection logic
+            Result.Success(Unit) // Signifies the connection attempt was initiated
         } catch (e: Exception) {
-            Log.e("BabyRepository", "Error during WebSocket disconnect", e)
-            // Handle the error appropriately, perhaps by emitting an error state
-            // through a separate Flow or channel if needed.
-            return (Result.Error(e.message ?: "Unknown error", e))
+            Log.e("BabyRepository", "Error initiating WebSocket connection to $ipAddress", e)
+            Result.Error(e.message ?: "Failed to initiate connection", e)
         }
     }
 
-    override fun receiveBabyInfo(): Flow<Result<BabyInfo>> {
-        return webSocketClient.receiveBabyInfo()
+    // Function to observe WebSocket connection state changes
+    override fun observeConnectionState(): Flow<WebSocketClient.ConnectionState> {
+        return webSocketClient.connectionState
     }
+
+// Your existing disconnectFromWS might also need adjustment if webSocketClient.disconnect()
+// now just triggers disconnection and you observe the state separately.
+override suspend fun disconnectFromWS(): Result<Unit> { // Modified to signify attempt
+    return try {
+        webSocketClient.disconnect()
+        Result.Success(Unit)
+    } catch (e: Exception) {
+        Log.e("BabyRepository", "Error initiating WebSocket disconnection", e)
+        Result.Error(e.message ?: "Failed to initiate disconnection", e)
+    }
+}
+
+override fun receiveBabyInfo(): Flow<Result<BabyInfo>> {
+    return webSocketClient.receiveBabyInfo()
+}
 }

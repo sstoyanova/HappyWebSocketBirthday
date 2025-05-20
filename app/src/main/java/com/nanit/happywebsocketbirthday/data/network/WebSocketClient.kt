@@ -6,12 +6,15 @@ import com.nanit.happywebsocketbirthday.domain.model.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.http.HttpMethod
+import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
+import io.ktor.websocket.readReason
 import io.ktor.websocket.readText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -23,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -30,11 +34,20 @@ import kotlinx.serialization.json.Json
 import java.net.ConnectException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.cancellation.CancellationException
 
 @Singleton
 class WebSocketClient @Inject constructor(
     private val client: HttpClient
 ) {
+    sealed class ConnectionState {
+        data object Idle : ConnectionState() // Initial state
+        data object Connecting : ConnectionState()
+        data object Connected : ConnectionState()
+        data class Disconnected(val reason: String?) : ConnectionState()
+        data class Failed(val error: Throwable?) : ConnectionState()
+    }
+
     private var session: WebSocketSession? = null
     private var sessionJob: Job? = null
 
@@ -49,14 +62,6 @@ class WebSocketClient @Inject constructor(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val incomingMessages: SharedFlow<Result<String>> = _incomingMessages.asSharedFlow()
-
-    sealed class ConnectionState {
-        data object Idle : ConnectionState() // Initial state
-        data object Connecting : ConnectionState()
-        data object Connected : ConnectionState()
-        data class Disconnected(val reason: String?) : ConnectionState()
-        data class Failed(val error: Throwable?) : ConnectionState()
-    }
 
     suspend fun connect(ipAddress: String) {
         if (session?.isActive == true) {
@@ -113,6 +118,13 @@ class WebSocketClient @Inject constructor(
                                     _incomingMessages.emit(Result.Success(receivedText))
                                 }
 
+                                is Frame.Close -> {
+                                    Log.d(
+                                        "WebSocketClient",
+                                        "Received Close frame: ${frame.readReason()}"
+                                    )
+                                }
+
                                 else -> {
                                     Log.d(
                                         "WebSocketClient",
@@ -126,16 +138,12 @@ class WebSocketClient @Inject constructor(
                             "WebSocketClient",
                             "Receive loop finished gracefully (channel closed)."
                         )
-
+                    } catch (e: CancellationException) {
+                        Log.d("WebSocketClient", "Receive job cancelled.")
+                        throw e // Re-throw
                     } catch (e: Exception) {
                         Log.e("WebSocketClient", "Exception in receive loop", e)
-                        // Handle exceptions during reception. This might or might not mean the
-                        // entire session is invalid, depending on the exception.
-                        if (currentSession.isActive == true) {
-                            Log.d(
-                                "WebSocketClient",
-                                "Receive loop error while session still active."
-                            )
+                        if (currentSession.isActive) { // Check local attempt
                             _incomingMessages.emit(
                                 Result.Error(
                                     "Error processing received message: ${e.message}",
@@ -145,10 +153,8 @@ class WebSocketClient @Inject constructor(
                         } else {
                             Log.e(
                                 "WebSocketClient",
-                                "Receive loop error when session is inactive. Likely session termination reason.",
-                                e
+                                "Receive loop error when currentSessionAttempt is inactive."
                             )
-                            // If session inactive, parent finally will handle.
                         }
                     } finally {
                         Log.d("WebSocketClient", "Receive job finally block reached.")
@@ -162,83 +168,102 @@ class WebSocketClient @Inject constructor(
                 receiveJob.join()
                 Log.d("WebSocketClient", "Connect job finished joining receiveJob.")
 
-
-            } catch (e: ConnectException) {
-                Log.e("WebSocketClient", "Connection failed", e)
+            } catch (e: ConnectException) { // This will now refer to java.net.ConnectException
+                Log.e("WebSocketClient", "Connection failed (java.net.ConnectException)", e)
                 _connectionState.value = ConnectionState.Failed(e)
-
-            } catch (e: Exception) {
-                // Catch any other exceptions during session setup or while waiting for the receive job to join
+            } catch (e: io.ktor.network.sockets.SocketTimeoutException) { // Catch Ktor's timeout specifically if needed
                 Log.e(
                     "WebSocketClient",
-                    "Exception during WebSocket setup or joining receive job",
+                    "Connection attempt timed out (Ktor SocketTimeoutException)",
+                    e
+                )
+                _connectionState.value =
+                    ConnectionState.Failed(e) // Or a specific timeout error state
+            } catch (e: CancellationException) {
+                Log.d("WebSocketClient", "Connect job was cancelled.")
+                throw e
+            } catch (e: Exception) { // Catch other potential Ktor or general exceptions
+                Log.e(
+                    "WebSocketClient",
+                    "Exception during WebSocket setup or operation: ${e.javaClass.name}",
                     e
                 )
                 _connectionState.value = ConnectionState.Failed(e)
-
             } finally {
-                // This finally block is reached when the parent sessionJob:
-                // 1. Completes after receiveJob.join() finishes (meaning the session's incoming channel closed).
-                // 2. Catches an exception in its try block.
-                // 3. Is cancelled externally.
                 Log.d(
                     "WebSocketClient",
-                    "Connect job finally block reached. Cleaning up references."
-                )
-                Log.d(
-                    "WebSocketClient",
-                    "Connect job finally: session is null: ${session == null}, session?.isActive: ${session?.isActive}"
-                )
-                Log.d(
-                    "WebSocketClient",
-                    "Connect job finally: sessionJob is null: ${sessionJob == null}, sessionJob?.isActive: ${sessionJob?.isActive}, sessionJob?.isCancelled: ${sessionJob?.isCancelled}"
+                    "Connect job's MAIN finally. This job's active status: ${this.coroutineContext.isActive}"
                 )
 
+                val jobWasCancelled = !this.coroutineContext.isActive // Use this job's context
 
-                // Attempt to close the session if it's still active.
-                // Use the local currentSession reference as the class-level session might already be nulled by disconnect()
-                // Check if the session is not null AND isActive before attempting close
                 if (currentSession != null && currentSession.isActive) {
-                    Log.d(
-                        "WebSocketClient",
-                        "Session still active in finally. Attempting graceful close."
-                    )
+                    Log.d("WebSocketClient", "Connect finally: Closing currentSessionAttempt.")
                     try {
-                        currentSession.close() // Gracefully close the Ktor session
+                        currentSession.close(
+                            CloseReason(
+                                CloseReason.Codes.NORMAL,
+                                "Client closing connection in finally"
+                            )
+                        )
                     } catch (e: Exception) {
-                        Log.e("WebSocketClient", "Error closing session in finally", e)
+                        Log.e(
+                            "WebSocketClient",
+                            "Error closing currentSessionAttempt in finally",
+                            e
+                        )
                     }
                 }
 
-                // Determine the final state and emit Disconnected if it's not already Failed.
-                // If the sessionJob was cancelled, we can infer a disconnection often due to cancellation.
-                // If the session became inactive without the state being set to Failed, assume a disconnection.
                 val disconnectReason = when {
-                    sessionJob?.isCancelled == true -> "Job cancelled"
+                    jobWasCancelled -> "Connection job cancelled"
                     currentSession?.isActive == false -> "Session inactive or closed"
-                    else -> "Unknown reason" // Should ideally not be reached if session is closed
+                    currentSession == null && _connectionState.value !is ConnectionState.Failed -> "Session never established"
+                    else -> {
+                        Log.w(
+                            "WebSocketClient",
+                            "Disconnect reason UNKNOWN. jobWasCancelled=$jobWasCancelled, currentSessionAttempt.isActive=${currentSession?.isActive}, _connectionState=${_connectionState.value}"
+                        )
+                        "Unknown reason"
+                    }
                 }
 
-
-                // Emit Disconnected state ONLY if not already Failed
                 if (_connectionState.value !is ConnectionState.Failed) {
-                    Log.d(
-                        "WebSocketClient",
-                        "Emitting ConnectionState.Disconnected. Reason: $disconnectReason"
-                    )
-                    _connectionState.value = ConnectionState.Disconnected(disconnectReason)
+                    val currentDisconnectedState =
+                        _connectionState.value as? ConnectionState.Disconnected
+                    if (currentDisconnectedState == null || (currentDisconnectedState.reason != "Disconnected by user" && currentDisconnectedState.reason != disconnectReason)) {
+                        Log.d(
+                            "WebSocketClient",
+                            "Connect finally: Emitting Disconnected. Reason: $disconnectReason. Prev state: ${_connectionState.value}"
+                        )
+                        _connectionState.value = ConnectionState.Disconnected(disconnectReason)
+                    } else {
+                        Log.d(
+                            "WebSocketClient",
+                            "Connect finally: State already Disconnected. Current reason: ${currentDisconnectedState?.reason}. New reason attempt: $disconnectReason"
+                        )
+                    }
                 } else {
                     Log.d(
                         "WebSocketClient",
-                        "ConnectionState is already Failed, not emitting Disconnected in finally."
+                        "Connect finally: State already Failed. Not emitting Disconnected for reason: $disconnectReason"
                     )
                 }
 
-
-                // Clear the references. This should be the final cleanup for this job.
-                Log.d("WebSocketClient", "Clearing session and sessionJob references in finally.")
-                session = null
-                sessionJob = null
+                // Critical: Only nullify class members if this job is the one currently assigned.
+                if (this@WebSocketClient.sessionJob === this.coroutineContext.job) {
+                    Log.d(
+                        "WebSocketClient",
+                        "Connect finally: Clearing class session and sessionJob references."
+                    )
+                    this@WebSocketClient.session = null
+                    this@WebSocketClient.sessionJob = null
+                } else {
+                    Log.d(
+                        "WebSocketClient",
+                        "Connect finally: This job is not the current class sessionJob. Not clearing global references."
+                    )
+                }
             }
         }
     }
@@ -280,6 +305,7 @@ class WebSocketClient @Inject constructor(
                             ) // Emit Error on parsing failure
                         }
                     }
+
                     is Result.Error -> result // Pass through existing errors from message reception
                     is Result.Loading -> Result.Loading
                 }
@@ -290,20 +316,41 @@ class WebSocketClient @Inject constructor(
     // Function to disconnect the WebSocket
     suspend fun disconnect() {
         Log.d("WebSocketClient", "Disconnect requested.")
+        // Capture references before nulling, to ensure we operate on the correct instances
+        val jobToCancel = this.sessionJob
+        val sessionToClose = this.session
+
+        // Null out shared references early to prevent other operations from using them.
+        this.sessionJob = null
+        this.session = null
+
         try {
-            if (session?.isActive == true) {
-                session?.close() // Close the WebSocket gracefully
-                Log.d("WebSocketClient", "disconect: session?.close()")
+            if (sessionToClose?.isActive == true) {
+                Log.d("WebSocketClient", "disconnect: sessionToClose.close()")
+                sessionToClose.close()
             }
-            sessionJob?.cancel() // Cancel the job to stop consuming messages and clean up
+            // Cancel the job and WAIT for its completion (including its finally block)
+            jobToCancel?.cancelAndJoin()
+            Log.d("WebSocketClient", "disconnect: jobToCancel.cancelAndJoin() completed.")
+
         } catch (e: Exception) {
-            Log.e("WebSocketClient", "Error during disconnect", e)
+            Log.e("WebSocketClient", "Error during disconnect's core logic", e)
         } finally {
-            Log.d("WebSocketClient", "disconnect: session = null")
-            session = null
-            sessionJob = null
-            Log.d("WebSocketClient", "Emitting ConnectionState.Disconnected (Disconnected by user)")
-            _connectionState.emit(ConnectionState.Disconnected("Disconnected by user")) // Ensure state is updated
+            // This finally is for the disconnect() method itself.
+            // The sessionJob's finally block should be the one setting the detailed disconnected state.
+            // This one ensures a general "Disconnected by user" if nothing else has set it.
+            if (_connectionState.value !is ConnectionState.Disconnected && _connectionState.value !is ConnectionState.Failed) {
+                Log.d(
+                    "WebSocketClient",
+                    "disconnect method finally: Emitting ConnectionState.Disconnected (Disconnected by user)"
+                )
+                _connectionState.emit(ConnectionState.Disconnected("Disconnected by user"))
+            } else {
+                Log.d(
+                    "WebSocketClient",
+                    "disconnect method finally: State already Disconnected or Failed. Current: ${_connectionState.value}"
+                )
+            }
         }
     }
 
@@ -321,7 +368,7 @@ class WebSocketClient @Inject constructor(
     ) {
 
         fun toDomain(): BabyInfo {
-            return BabyInfo(name,dob,theme)
+            return BabyInfo(name, dob, theme)
         }
 
         companion object {

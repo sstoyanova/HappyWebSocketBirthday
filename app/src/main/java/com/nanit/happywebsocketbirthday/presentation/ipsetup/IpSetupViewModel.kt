@@ -7,6 +7,7 @@ import com.nanit.happywebsocketbirthday.data.network.WebSocketClient
 import com.nanit.happywebsocketbirthday.domain.model.Result
 import com.nanit.happywebsocketbirthday.domain.usecase.ConnectToWSUseCase
 import com.nanit.happywebsocketbirthday.domain.usecase.DisconnectFromWSUseCase
+import com.nanit.happywebsocketbirthday.domain.usecase.ObserveWSConnectionUseCase
 import com.nanit.happywebsocketbirthday.domain.usecase.ReceiveBabyInfoWSUseCase
 import com.nanit.happywebsocketbirthday.domain.usecase.SendMessageUseCase
 import com.nanit.happywebsocketbirthday.isValidIpPortFormat
@@ -26,6 +27,7 @@ import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class IpSetupViewModel @Inject constructor(
+    private val observeWSConnectionUseCase: ObserveWSConnectionUseCase,
     private val connectToWSUseCase: ConnectToWSUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val receiveBabyInfoWSUseCase: ReceiveBabyInfoWSUseCase,
@@ -34,11 +36,13 @@ class IpSetupViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(IpSetupScreenState())
     val state: StateFlow<IpSetupScreenState> = _state.asStateFlow()
-    private var babyInfoCollectorJob: Job? = null // Keep track of the job
+    private var babyInfoCollectorJob: Job? = null
+    private var connectionCollectorJob: Job? = null
 
 
     override fun onCleared() {
         babyInfoCollectorJob?.cancel() // Explicitly cancel the collector job
+        connectionCollectorJob?.cancel() // Explicitly cancel the collector job
         viewModelScope.launch { // Launch in ViewModel scope since disconnect is suspend
             disconnectFromWSUseCase()
         }
@@ -171,125 +175,97 @@ class IpSetupViewModel @Inject constructor(
     }
 
     fun onConnectClick() {
+        observeConnection()
         val ipAddress = _state.value.ipPort
+        // Check if already running to avoid multiple collectors if init were called again (unlikely for ViewModel)
         viewModelScope.launch {
-            // Set loading initially before starting the process
-            Log.d("IpSetupViewModel", "WebSocket ConnectionState: $state")
-            _state.value =
-                _state.value.copy(
-                    isLoading = true,
-                    connectionStatusText = "Connecting...",
-                    isConnected = false
-                )
-
             connectToWSUseCase(ipAddress)
+        }
+    }
+
+    private fun observeConnection() {
+        if (connectionCollectorJob?.isActive == true) return
+        // Launch on Dispatchers.IO or Dispatchers.Default for the initial setup
+        connectionCollectorJob = viewModelScope.launch {
+            observeWSConnectionUseCase()
                 .collectLatest { result -> // Collect the Result
                     Log.d("IpSetupViewModel", "connectToWSUseCase emitted: $result")
                     when (result) {
-                        is Result.Loading -> {
-                            // Update state to indicate loading
-                            _state.update {
-                                it.copy(
-                                    isLoading = true,
-                                    connectionStatusText = "Connecting...",
-                                    isConnected = false
-                                )
-                            }
-                        }
-
-                        is Result.Success -> {
-                            when (result.data) {
-                                is WebSocketClient.ConnectionState.Idle ->
-                                    _state.update {
-                                        it.copy(
-                                            isLoading = false,
-                                            isConnected = false,
-                                            connectionStatusText = "Connection Idle"
-                                        )
-                                    }
-
-                                is WebSocketClient.ConnectionState.Connecting ->
-                                    _state.update {
-                                        it.copy(
-                                            isLoading = true,
-                                            isConnected = false,
-                                            connectionStatusText = "Connecting..."
-                                        )
-                                    }
-
-                                is WebSocketClient.ConnectionState.Connected -> {
-                                    _state.update {
-                                        it.copy(
-                                            isLoading = false,
-                                            isConnected = true,
-                                            connectionStatusText = "Connected"
-                                        )
-                                    }
-                                    startBabyInfoCollector()
-                                }
-
-                                is WebSocketClient.ConnectionState.Disconnected -> {
-                                    _state.update {
-                                        it.copy(
-                                            isLoading = false,
-                                            isConnected = false,
-                                            connectionStatusText = "Disconnected: ${result.data.reason ?: "Unknown reason"}"
-                                        )
-                                    }
-                                    babyInfoCollectorJob?.cancel()
-                                    Log.d(
-                                        "IpSetupViewModel",
-                                        "Disconnected. BabyInfoCollector job cancelled."
-                                    )
-                                }
-
-                                is WebSocketClient.ConnectionState.Failed -> {
-                                    Log.e(
-                                        "ViewModelConnectionState",
-                                        "!!! Connection Failed: ${result.data.error?.localizedMessage ?: result.data.error?.message ?: "Unknown error"}",
-                                        result.data.error
-                                    ) // Log failure with error
-                                    _state.update {
-                                        it.copy(
-                                            isLoading = false,
-                                            isConnected = false,
-                                            connectionStatusText = "Connection Failed: ${result.data.error?.localizedMessage ?: result.data.error?.message ?: "Unknown error"}"
-                                        )
-                                    }
-
-                                    babyInfoCollectorJob?.cancel()
-                                    Log.d(
-                                        "IpSetupViewModel",
-                                        "Connection failed. BabyInfoCollector job cancelled."
-                                    )
-                                }
-                            }
-                        }
-
-                        is Result.Error -> {
-                            // Handle connection or data error
+                        is WebSocketClient.ConnectionState.Idle ->
                             _state.update {
                                 it.copy(
                                     isLoading = false,
-                                    connectionStatusText = "Connection Error: ${result.message}",
-                                    isConnected = false
+                                    isConnected = false,
+                                    connectionStatusText = "Connection Idle"
                                 )
                             }
-                            Log.e(
-                                "IpSetupViewModel",
-                                "Error: ${result.message}",
-                                result.exception
-                            )
+
+                        is WebSocketClient.ConnectionState.Connecting ->
+                            _state.update {
+                                it.copy(
+                                    isLoading = true,
+                                    isConnected = false,
+                                    connectionStatusText = "Connecting..."
+                                )
+                            }
+
+                        is WebSocketClient.ConnectionState.Connected -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    isConnected = true,
+                                    connectionStatusText = "Connected"
+                                )
+                            }
+                            startBabyInfoCollector()
+                        }
+
+                        is WebSocketClient.ConnectionState.Disconnected -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    isConnected = false,
+                                    connectionStatusText = "Disconnected: ${result.reason ?: "Unknown reason"}"
+                                )
+                            }
                             babyInfoCollectorJob?.cancel()
                             Log.d(
                                 "IpSetupViewModel",
-                                "Connection UseCase Error. BabyInfoCollector job cancelled."
+                                "Disconnected. BabyInfoCollector job cancelled."
+                            )
+                        }
+
+                        is WebSocketClient.ConnectionState.Failed -> {
+                            Log.e(
+                                "ViewModelConnectionState",
+                                "!!! Connection Failed: ${result.error?.localizedMessage ?: result.error?.message ?: "Unknown error"}",
+                                result.error
+                            ) // Log failure with error
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    isConnected = false,
+                                    connectionStatusText = "Connection Failed: ${result.error?.localizedMessage ?: result.error?.message ?: "Unknown error"}"
+                                )
+                            }
+
+                            babyInfoCollectorJob?.cancel()
+                            Log.d(
+                                "IpSetupViewModel",
+                                "Connection failed. BabyInfoCollector job cancelled."
                             )
                         }
                     }
                 }
         }
     }
+
+    fun onDisconnectClick() {
+        viewModelScope.launch {
+            disconnectFromWSUseCase()
+        }
+    }
+
 
     // Function to handle changes to the IP/Port input
     fun onIpPortChanged(newIpPort: String) {

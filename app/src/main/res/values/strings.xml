@@ -15,6 +15,7 @@
     <string name="ip_port_placeholder">e.g., 192.168.1.1:8080</string>
     <string name="please_enter_a_valid_ip_port_first">Please enter a valid IP:Port first</string>
     <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
     <string name="send_message">Send Message</string>
     <string name="loading_baby_info">Loading baby info…</string>
     <string name="decoration">Decoration</string>

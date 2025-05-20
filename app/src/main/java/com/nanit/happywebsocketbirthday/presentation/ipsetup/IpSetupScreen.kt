@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,73 +36,49 @@ fun IpSetupScreen(
     uiState: IpSetupScreenState,
     onIpPortChange: (String) -> Unit, // Callback for IP/Port changes
     onConnectClick: () -> Unit, // Callback for the Connect button click
+    onDisconnectClick: () -> Unit, // Callback for the Disconnect button click
     onSendMessageClick: () -> Unit, // Callback for the SendMessage button click
 ) {
     Column(
         modifier = Modifier
             .statusBarsPadding()
-            .padding(horizontal = 40.dp)
+            .padding(36.dp)
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        Text(
-            "Hello Nanit Team!",
-            Modifier.padding(
-                top = 32.dp,
-                bottom = 16.dp
-            ),
-            fontSize = 21.sp
-        )
+        Text("Hello Nanit Team!", Modifier.padding(bottom = 16.dp), fontSize = 21.sp)
         Text(uiState.connectionStatusText, Modifier.padding(bottom = 16.dp))
         Text(uiState.messageStatusText, Modifier.padding(bottom = 16.dp))
         Text(uiState.babyInfoStatusText)
 
-        OutlinedTextField(
-            //A text box that displays the string value you pass here.
-            value = uiState.ipPort,
-            //The lambda callback that's triggered when the user enters text in the text box.
-            onValueChange = { newValue ->
-                onIpPortChange(newValue) // Call the callback to handle the change
-            }, // Updates the state when user types
-            label = { Text(stringResource(R.string.ip_port_label)) },
-            placeholder = { Text(stringResource(R.string.ip_port_placeholder)) },
-            isError = !uiState.validationResult.isValid, // Use validationResult from state
-            supportingText = {
-                if (!uiState.validationResult.isValid) { // Use validationResult from state
-                    Text(text = uiState.validationResult.errorMessage)
-                }
-            },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Uri,
-                imeAction = ImeAction.Done
-            ),
+        IpAddressInputField(
+            ipPort = uiState.ipPort,
+            onIpPortChange = onIpPortChange, // Pass the callback directly
+            validationResult = uiState.validationResult,
             modifier = Modifier.padding(top = 32.dp, bottom = 32.dp)
         )
 
-        if (uiState.isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(64.dp),
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                strokeWidth = 4.dp
-            )
-        } else {
-            //Spacer to maintain the layout.
-            Spacer(modifier = Modifier.height(64.dp))
-        }
+        LoadingIndicatorOrSpacer(isLoading = uiState.isLoading)
+
         Button(
             onClick = { onConnectClick() },
             modifier = Modifier.padding(top = 32.dp),
-            enabled = uiState.validationResult.isValid && uiState.ipPort.isNotEmpty() && !uiState.isLoading
+            enabled = !uiState.isConnected && uiState.validationResult.isValid && uiState.ipPort.isNotEmpty() && !uiState.isLoading
         ) {
             Text(stringResource(R.string.connect))
         }
 
         Button(
-            onClick = {
-                onSendMessageClick()
-            },
+            onClick = { onDisconnectClick() },
+            modifier = Modifier.padding(top = 16.dp),
+            enabled = uiState.isConnected
+        ) {
+            Text(stringResource(R.string.disconnect))
+        }
+
+        Button(
+            onClick = { onSendMessageClick() },
             modifier = Modifier.padding(top = 16.dp),
             enabled = uiState.isConnected
         ) {
@@ -117,6 +94,7 @@ fun IpSetupScreen(
     viewModel: IpSetupViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val keyboardController = LocalSoftwareKeyboardController.current // Get the controller here
 
     // Use LaunchedEffect to trigger navigation when babyInfoReceived is true
     LaunchedEffect(key1 = state.navigateToBabyInfoEvent) {
@@ -133,8 +111,11 @@ fun IpSetupScreen(
             viewModel.onIpPortChanged(newValue)
         },
         onConnectClick = {
-            // When the button is clicked, simply trigger the onConnectClick function in the ViewModel
+            keyboardController?.hide() // Hide keyboard
             viewModel.onConnectClick()
+        },
+        onDisconnectClick = {
+            viewModel.onDisconnectClick()
         },
         onSendMessageClick = {
             viewModel.onSendMessageClick()
@@ -142,7 +123,7 @@ fun IpSetupScreen(
     )
 }
 
-@Preview(showBackground = true,)
+@Preview(showBackground = true)
 @Composable
 fun IpAddressSetupScreenPreview() {
     val sampleUiState = IpSetupScreenState(
@@ -158,7 +139,47 @@ fun IpAddressSetupScreenPreview() {
         uiState = sampleUiState,
         onIpPortChange = {}, //empty lambdas for preview
         onConnectClick = {},
+        onDisconnectClick = {},
         onSendMessageClick = {}
     )
+}
 
+@Composable
+fun IpAddressInputField(
+    ipPort: String,
+    onIpPortChange: (String) -> Unit,
+    validationResult: ValidationResult,
+    modifier: Modifier = Modifier // Allow passing custom modifiers
+) {
+    OutlinedTextField(
+        value = ipPort,
+        onValueChange = onIpPortChange, // Directly use the passed lambda
+        label = { Text(stringResource(R.string.ip_port_label)) },
+        placeholder = { Text(stringResource(R.string.ip_port_placeholder)) },
+        isError = !validationResult.isValid,
+        supportingText = {
+            if (!validationResult.isValid) {
+                Text(text = validationResult.errorMessage)
+            }
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Uri,
+            imeAction = ImeAction.Done
+        ),
+        modifier = modifier // Apply the passed modifier
+    )
+}
+
+@Composable
+fun LoadingIndicatorOrSpacer(isLoading: Boolean) {
+    if (isLoading) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(64.dp),
+            color = MaterialTheme.colorScheme.secondary,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            strokeWidth = 4.dp // Consider making this a parameter if it might vary
+        )
+    } else {
+        Spacer(modifier = Modifier.height(64.dp))
+    }
 }
