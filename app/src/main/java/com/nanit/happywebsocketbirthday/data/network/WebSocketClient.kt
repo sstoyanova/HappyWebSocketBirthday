@@ -240,7 +240,7 @@ class WebSocketClient @Inject constructor(
                     } else {
                         Log.d(
                             "WebSocketClient",
-                            "Connect finally: State already Disconnected. Current reason: ${currentDisconnectedState?.reason}. New reason attempt: $disconnectReason"
+                            "Connect finally: State already Disconnected. Current reason: ${currentDisconnectedState.reason}. New reason attempt: $disconnectReason"
                         )
                     }
                 } else {
