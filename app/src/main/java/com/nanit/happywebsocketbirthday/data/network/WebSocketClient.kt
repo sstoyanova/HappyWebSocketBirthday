@@ -10,6 +10,7 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -28,7 +30,6 @@ import kotlinx.serialization.json.Json
 import java.net.ConnectException
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.coroutineContext
 
 @Singleton
 class WebSocketClient @Inject constructor(
@@ -82,7 +83,7 @@ class WebSocketClient @Inject constructor(
 
         // Launch a job that will manage the WebSocket session lifecycle
         // This job's lifetime is the lifetime of the connection management attempt
-        sessionJob = client.launch(coroutineContext) {
+        sessionJob = client.launch {
             var currentSession: WebSocketSession? =
                 null // Use a local variable for the session reference during setup
             try {
@@ -283,6 +284,7 @@ class WebSocketClient @Inject constructor(
                     is Result.Loading -> Result.Loading
                 }
             }
+            .flowOn(Dispatchers.Default) // Perform map (including JSON parsing) on a background thread
     }
 
     // Function to disconnect the WebSocket
