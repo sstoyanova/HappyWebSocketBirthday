@@ -311,7 +311,7 @@ class WebSocketClient @Inject constructor(
 
     // Flow to collect single BabyInfo
     fun receiveBabyInfo(): Flow<Result<BabyInfo>> {
-        // Collect from the central incomingMessages flow and map/filter
+        // Collect from the central incomingMessages flow and map
         return incomingMessages
             .map { result -> // Map the Result<String>
                 when (result) {

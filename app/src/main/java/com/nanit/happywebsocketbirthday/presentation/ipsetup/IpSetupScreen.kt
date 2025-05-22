@@ -34,10 +34,8 @@ import com.nanit.happywebsocketbirthday.ValidationResult
 @Composable
 fun IpSetupScreen(
     uiState: IpSetupScreenState,
-    onIpPortChange: (String) -> Unit, // Callback for IP/Port changes
-    onConnectClick: () -> Unit, // Callback for the Connect button click
-    onDisconnectClick: () -> Unit, // Callback for the Disconnect button click
-    onSendMessageClick: () -> Unit, // Callback for the SendMessage button click
+    // Single callback for all user actions
+    onUserAction: (IpSetupUserAction) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -54,7 +52,9 @@ fun IpSetupScreen(
 
         IpAddressInputField(
             ipPort = uiState.ipPort,
-            onIpPortChange = onIpPortChange, // Pass the callback directly
+            onIpPortChange = { newIpPort ->
+                onUserAction(IpSetupUserAction.IpPortChanged(newIpPort))
+            },
             validationResult = uiState.validationResult,
             modifier = Modifier.padding(top = 32.dp, bottom = 32.dp)
         )
@@ -62,7 +62,7 @@ fun IpSetupScreen(
         LoadingIndicatorOrSpacer(isLoading = uiState.isLoading)
 
         Button(
-            onClick = { onConnectClick() },
+            onClick = { onUserAction(IpSetupUserAction.ConnectClicked) },
             modifier = Modifier.padding(top = 32.dp),
             enabled = !uiState.isConnected && uiState.validationResult.isValid && uiState.ipPort.isNotEmpty() && !uiState.isLoading
         ) {
@@ -70,7 +70,7 @@ fun IpSetupScreen(
         }
 
         Button(
-            onClick = { onDisconnectClick() },
+            onClick = { onUserAction(IpSetupUserAction.DisconnectClicked) },
             modifier = Modifier.padding(top = 16.dp),
             enabled = uiState.isConnected
         ) {
@@ -78,7 +78,7 @@ fun IpSetupScreen(
         }
 
         Button(
-            onClick = { onSendMessageClick() },
+            onClick = { onUserAction(IpSetupUserAction.SendMessageClicked) },
             modifier = Modifier.padding(top = 16.dp),
             enabled = uiState.isConnected
         ) {
@@ -106,19 +106,19 @@ fun IpSetupScreen(
 
     IpSetupScreen(
         uiState = state,
-        onIpPortChange = { newValue ->
-            // When the IP/Port text changes, simply trigger the onIpPortChanged function in the ViewModel
-            viewModel.onIpPortChanged(newValue)
-        },
-        onConnectClick = {
-            keyboardController?.hide() // Hide keyboard
-            viewModel.onConnectClick()
-        },
-        onDisconnectClick = {
-            viewModel.onDisconnectClick()
-        },
-        onSendMessageClick = {
-            viewModel.onSendMessageClick()
+        onUserAction = { action ->
+            // Handle different user actions here
+            when (action) {
+                is IpSetupUserAction.IpPortChanged -> viewModel.onIpPortChanged(action.newIpPort)
+                IpSetupUserAction.ConnectClicked -> {
+                    keyboardController?.hide()
+                    viewModel.onConnectClick()
+                }
+
+                IpSetupUserAction.DisconnectClicked -> viewModel.onDisconnectClick()
+                IpSetupUserAction.SendMessageClicked -> viewModel.onSendMessageClick()
+                IpSetupUserAction.BabyInfoNavigationHandled -> viewModel.onBabyInfoNavigationHandled()
+            }
         }
     )
 }
@@ -137,10 +137,7 @@ fun IpAddressSetupScreenPreview() {
 
     IpSetupScreen(
         uiState = sampleUiState,
-        onIpPortChange = {}, //empty lambdas for preview
-        onConnectClick = {},
-        onDisconnectClick = {},
-        onSendMessageClick = {}
+        onUserAction = { action -> }
     )
 }
 

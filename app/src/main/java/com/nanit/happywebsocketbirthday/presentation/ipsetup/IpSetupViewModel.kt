@@ -55,7 +55,7 @@ class IpSetupViewModel @Inject constructor(
         // Launch on Dispatchers.IO or Dispatchers.Default for the initial setup
         babyInfoCollectorJob = viewModelScope.launch(Dispatchers.IO) {
             try {
-                receiveBabyInfoWSUseCase().collect { result ->
+                receiveBabyInfoWSUseCase().collectLatest { result ->
                     Log.d("IpSetupViewModel", "receiveBabyInfoWSUseCase emitted: $result")
                     // IMPORTANT: Updates to _state MUST happen on the Main thread
                     withContext(Dispatchers.Main) {
